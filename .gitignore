@@ -1,0 +1,6 @@
+# GitHub Pages is the only public artifact in this repository.
+*
+!.gitignore
+!README.md
+!docs/
+!docs/**
