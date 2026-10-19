@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="kiQSMiMC38B9QuAWxW1h1D">
+<head data-page-node-id="PsSZfXTPzSMomUiIqgMjRa">
+<meta charset="UTF-8" data-page-node-id="27FK0Gedcv9MTASuo3gnkz">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="isLUGIJhcwnBK06Z5FpobO">
+<title>LexChain 律链 · 法律形式化推理引擎</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2330; --border: #2d333b;
+    --text: #e6edf3; --muted: #8b949e; --accent: #4f8ff7; --accent2: #7c6ff0;
+    --red: #f85149; --green: #3fb950; --amber: #d29922; --purple: #a371f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.6; padding-bottom: 60px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  header { text-align: center; padding: 28px 0 12px; }
+  header h1 { font-size: 26px; letter-spacing: 1px; }
+  header h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .badge { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 12px; border: 1px solid var(--border); color: var(--muted); margin: 0 3px; }
+  .badge.ok { color: var(--green); border-color: rgba(63,185,80,.4); }
+  .badge.warn { color: var(--amber); border-color: rgba(210,153,34,.4); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 18px; }
+  .card h2 { font-size: 15px; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  textarea { width: 100%; min-height: 90px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 12px; font-size: 14px; resize: vertical; font-family: inherit; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .presets { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 12px; padding: 5px 12px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--border); color: var(--muted); cursor: pointer; transition: .15s; }
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .btn { display: inline-block; margin-top: 12px; padding: 10px 26px; border: none; border-radius: 8px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn.ghost { background: var(--panel2); border: 1px solid var(--border); color: var(--muted); font-weight: 400; }
+  .verdict { border-radius: 12px; padding: 18px 20px; margin-top: 18px; border: 1px solid var(--border); background: var(--panel); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .verdict.v-bad { border-color: rgba(248,81,73,.5); background: rgba(248,81,73,.08); }
+  .verdict.v-warn { border-color: rgba(210,153,34,.5); background: rgba(210,153,34,.08); }
+  .verdict.v-ok { border-color: rgba(63,185,80,.5); background: rgba(63,185,80,.08); }
+  .verdict .v-main { font-size: 18px; font-weight: 700; }
+  .verdict .v-sym { font-family: "SF Mono", Menlo, monospace; color: var(--muted); font-size: 13px; }
+  .counts { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+  .rule-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-top: 12px; }
+  .rule-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .rule-head .rid { font-family: Menlo, monospace; font-size: 12px; color: var(--muted); }
+  .rule-head .src { font-size: 13px; font-weight: 600; }
+  .st { font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: 700; letter-spacing: .5px; }
+  .st-VIOLATION { background: rgba(248,81,73,.15); color: var(--red); }
+  .st-RISK, .st-DEFENSIBLE { background: rgba(210,153,34,.15); color: var(--amber); }
+  .st-POSSIBLE { background: rgba(124,111,240,.15); color: var(--purple); }
+  .st-PERMITTED, .st-COMPLIANT { background: rgba(63,185,80,.15); color: var(--green); }
+  .st-DEFEATED { background: rgba(139,148,158,.15); color: var(--muted); }
+  .law-text { font-size: 12px; color: var(--muted); margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--border); }
+  .sym { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; background: #0a0e14; border: 1px dashed var(--border); border-radius: 8px; padding: 10px 12px; color: var(--accent2); white-space: pre-wrap; word-break: break-all; }
+  .nl-chain { margin-top: 10px; }
+  .nl-chain li { list-style: none; font-size: 13.5px; padding: 5px 0 5px 22px; position: relative; }
+  .nl-chain li::before { content: '→'; position: absolute; left: 2px; color: var(--accent); font-family: Menlo, monospace; }
+  .meta-note { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+  .meta-note b { color: var(--amber); }
+  .ask-list li { margin: 6px 0 6px 18px; font-size: 13.5px; color: var(--amber); }
+  .fact-group { margin-bottom: 14px; }
+  .fact-group h3 { font-size: 12px; color: var(--accent2); margin-bottom: 6px; letter-spacing: 1px; }
+  .fact-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(45,51,59,.5); }
+  .fact-row label { font-size: 13px; color: var(--text); flex: 1; }
+  .tri { display: flex; gap: 4px; }
+  .tri button { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+  .tri button.on-yes { background: rgba(63,185,80,.2); color: var(--green); border-color: var(--green); }
+  .tri button.on-no { background: rgba(248,81,73,.2); color: var(--red); border-color: var(--red); }
+  .tri button.on-unk { background: rgba(139,148,158,.2); color: var(--muted); }
+  .fact-row input[type=number] { width: 90px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 4px 8px; font-size: 12px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 0 20px; }
+  .hidden { display: none; }
+  .err { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.4); color: var(--red); border-radius: 8px; padding: 12px; font-size: 13px; margin-top: 12px; }
+  .toggle-all { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
+  /* ===== 理论基石：符号推演 ===== */
+  details.logi { border: 1px solid var(--border); border-radius: 10px; margin-top: 12px; background: var(--panel2); overflow: hidden; }
+  details.logi summary { cursor: pointer; padding: 11px 14px; color: var(--accent); font-size: 14px; font-weight: 600; user-select: none; }
+  details.logi summary:hover { background: rgba(79,143,247,.06); }
+  details.logi .body { padding: 2px 14px 16px; }
+  table.tt { border-collapse: collapse; font-family: "SF Mono", Menlo, monospace; font-size: 12px; margin: 10px 0 4px; }
+  .tt th, .tt td { border: 1px solid var(--border); padding: 3px 12px; text-align: center; }
+  .tt th { background: #0a0e14; color: var(--muted); font-weight: 500; }
+  .tt .resT { color: var(--green); font-weight: 700; }
+  .tt .resF { color: var(--red); font-weight: 700; }
+  .tt-wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .tt-item { flex: 1 1 300px; max-width: 100%; }
+  .tt-item .t-head { font-family: Menlo, monospace; font-size: 12.5px; color: var(--text); }
+  .tt-item .t-head b { color: var(--accent2); }
+  .tt-item .t-verdict { font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-left: 8px; }
+  .tv-taut { background: rgba(63,185,80,.15); color: var(--green); }
+  .tv-cont { background: rgba(248,81,73,.15); color: var(--red); }
+  .tv-warn { background: rgba(210,153,34,.15); color: var(--amber); }
+  .t-der { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+  .t-der b { color: var(--amber); }
+  .proof { font-family: "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--accent2); background: #0a0e14; border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; white-space: pre-wrap; line-height: 1.7; margin-top: 8px; }
+  .ax { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--accent2); background: #0a0e14; border: 1px dashed var(--border); border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; line-height: 1.6; margin: 8px 0; }
+  .deo-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 10px; }
+  .deo-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .deo-head .dn { font-size: 13.5px; font-weight: 700; }
+  .deo-head .dops { font-family: Menlo, monospace; font-size: 11.5px; color: var(--muted); }
+  .tag { font-size: 10.5px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); }
+  .tag.ok { color: var(--green); border-color: rgba(63,185,80,.4); }
+  .tag.part { color: var(--amber); border-color: rgba(210,153,34,.4); }
+  .der-list { margin: 6px 0 0; }
+  .der-list li { list-style: none; font-size: 12.5px; padding: 3px 0 3px 20px; position: relative; color: var(--text); }
+  .der-list li::before { content: '⊢'; position: absolute; left: 2px; color: var(--accent); font-family: Menlo, monospace; }
+  table.hoh { border-collapse: collapse; font-size: 12.5px; margin-top: 8px; width: 100%; }
+  .hoh th, .hoh td { border: 1px solid var(--border); padding: 5px 10px; text-align: center; }
+  .hoh th { background: #0a0e14; color: var(--accent); font-weight: 600; }
+  .hoh td { color: var(--text); }
+  .hoh .pair { color: var(--accent2); font-family: Menlo, monospace; }
+</style>
+</head>
+<body data-page-node-id="8iEx9HB4UejlXtGTknqISz">
+<div class="wrap" data-page-node-id="PXcmVNnKZJIlE6Lpy5dcK5">
+  <header data-page-node-id="AC82jdaXDvnkETZtqz8NHw">
+    <h1 data-page-node-id="3eas1RuthiZibGDweAJNau"><span data-page-node-id="trlMmMA6we5F9K7dM6GMHF">LexChain 律链</span></h1>
+    <div class="sub" data-page-node-id="rGAv9Cwy0HodwI0c28MZ6c">分析哲学形式化法律推理引擎 · v0.1 劳动纠纷验证集</div>
+    <div style="margin-top:8px" data-page-node-id="2qCRTweAUWBQGh2IgwYf9Q">
+      <span class="badge" data-page-node-id="Y1KVa1GT4QhDN67C2BL3Ln">道义逻辑 O/F/P</span>
+      <span class="badge" data-page-node-id="mIiJxzrPqOlq3Sv80LHay0">三值判定 T/F/U</span>
+      <span class="badge" data-page-node-id="aGzgwrXjpfKVTA89egM71H">可废止推理</span>
+      <span class="badge" id="keyBadge" data-page-node-id="EaB1oFuyF2YlSqdUZA5FYp">检查中…</span>
+    </div>
+  </header>
+
+  <div class="card" data-page-node-id="wtyxxEg2XyhzfxhFRwy7So">
+    <h2 data-page-node-id="8v1SY3z0OoLtrpBDrHqLrT">① 输入事件</h2>
+    <textarea id="eventText" placeholder="用自然语言描述事件，例如：我在公司工作了8个月，一直没有签书面劳动合同，上个月被辞退了……"></textarea>
+    <div class="presets" id="presets" data-page-node-id="KBGAxTkIznjNuzR7W672NG"></div>
+    <button class="btn" id="analyzeBtn" onclick="analyzeText()" data-page-node-id="Bf56IJOTYQFfnmvdksYVYw">分析 →</button>
+    <span id="engineHint" style="font-size:12px;color:var(--muted);margin-left:10px" data-page-node-id="uKJEKAAeRHvwSGe8ieW7tk">判定由确定性规则引擎完成；LLM 仅负责事实抽取</span>
+    <div id="errBox" class="err hidden" data-page-node-id="k0vt3nFgk8JmOqXooDuOA5"></div>
+  </div>
+
+  <div class="card" data-page-node-id="GANivAtUZYr7OZUKsf3T4R">
+    <h2 data-page-node-id="1MYgts6lK30P6LggpzwSpf">② 事实面板 <span style="font-weight:400;font-size:12px;color:var(--muted)" data-page-node-id="TCiVMS4UPj8MEKva81fKfE">（可手动修正抽取结果后重新分析）</span></h2>
+    <div id="factPanel" data-page-node-id="Y68ztbX0nfJHcR3DQtiJM3"></div>
+    <button class="btn ghost" onclick="analyzeFacts()" data-page-node-id="4I5qacGDfSJrHTLnIl2Mmm">用当前事实集分析</button>
+  </div>
+
+  <div id="report" data-page-node-id="Lge5YZrceQLVSk72SocNAa"></div>
+
+  <div class="card" data-page-node-id="9f2v6cgGhTI3Khc42GIGiU">
+    <h2 data-page-node-id="dFSw7DXX0FTnGQY1dLGjk6">③ 理论基石 · 分析哲学符号推演体系 <span class="tag ok" data-page-node-id="G3Hsxzw0xbjmLrdzzfGlsy">真值表引擎实时证明</span></h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:6px" data-page-node-id="lC5NADKWtnWMNioen28ml5">以下重言式与矛盾式由页面内置<b style="color:var(--text)" data-page-node-id="i1HdasJ02gujvpQowvXe1r">真值表推演引擎</b>逐行计算证明——展开即见每一行赋值，证明过程可复现、可审计，与上方规则推理同源。每条公式均附<b style="color:var(--text)" data-page-node-id="UzhEtMV9uJGk6oDCiQrg8h">配套解释</b>：名称、直观含义、法律与引擎中的意义。</p>
+
+    <details class="logi" data-page-node-id="ar3GlRzbGRBKR1BG46HOAC"><summary data-page-node-id="h6nitEFqiJRPWAFxrAN1xY">一、重言式（全 12 条）—— 恒真式的逐行证明 ⊨</summary>
+      <div class="body" data-page-node-id="I37AoTvzkkva6RV8RAajSg">
+        <div class="tt-wrap" id="tautBody" data-page-node-id="xHVLdP9O7mgwTyLyqPRY5y"></div>
+        <div class="t-der" style="margin-top:12px" data-page-node-id="TgLnxxqI06RL32b2vwnKf5"><b data-page-node-id="geAo5VrZZTKqwzUIbdGn3B">量词重言式（第 11、12 条）语义推演：</b></div>
+        <div class="proof" data-page-node-id="w2gxmw8nj8yenNpEQ3H313">【11】∀x(F(x)→F(x))   ——全称概括律
+  证：任取个体域 D 与指派 a∈D，F(a)→F(a) 是重言式 2（p→p）的代入例，恒真；
+      a 任意，由 ∀-引入规则，得 ⊨∀x(F(x)→F(x))。∎
+  解释：谓词 F 无论指「签订合同」「支付工资」还是任意属性，
+      「每个个体若具有 F 则具有 F」无条件成立——它是所有全称规范条文的骨架：
+      立法者写 ∀x(劳动者(x)→O(pay(x)))，其可靠性最终锚定在这种恒真结构上。</div>
+        <div class="proof" data-page-node-id="yBKq9NqIEUEyNfyhAJFI2V">【12】¬∀x F(x) ≡ ∃x¬F(x)   ——量词对偶律（谓词版德摩根）
+  证（⇒）：设 ¬∀xF(x)。若域中每个 a 都有 F(a)，则 ∀xF(x) 成立，矛盾；
+      故存在 witness a 使 ¬F(a)，即 ∃x¬F(x)。
+  证（⇐）：设 witness a 有 ¬F(a)。若 ∀xF(x) 则 F(a)，与 ¬F(a) 矛盾；故 ¬∀xF(x)。∎
+  解释：把命题层德摩根定律（第 5、6 条）推广到量词——「不是所有人都违约」
+      等值于「有人未违约」。反证法在要件事实审查中的形式根据即此条：
+      要推翻全称认定，只需找到一个反例事实。</div>
+      </div>
+    </details>
+
+    <details class="logi" data-page-node-id="wHQ6laDqYKRnBhmOh3aQGp"><summary data-page-node-id="arDir95RDEcTEsCd3wKOgD">二、矛盾式（全 8 条）—— 恒假式的逐行证明 ⊥</summary>
+      <div class="body" data-page-node-id="QaQAPTmOGtlXGIwswcIniz">
+        <div class="tt-wrap" id="contBody" data-page-node-id="cJmKgsJFPHz3Hm1T7VVUot"></div>
+        <div class="t-der" style="margin-top:12px" data-page-node-id="wu0bHub8uCHuVLduQCK8SZ"><b data-page-node-id="5JG4RDcRlGgX1QsCeCD994">量词矛盾式（第 5、6、7 条）语义推演：</b></div>
+        <div class="proof" data-page-node-id="NLpxM8unNSf5VFuf5Dn6uw">【5】∀x(F(x)∧¬F(x))   ——全称自反矛盾
+  证：对任意 a∈D，F(a)∧¬F(a) 是矛盾式 1（p∧¬p）的代入例，恒假；
+      全称概括保持假值，故该式在任意非空域恒假；空域时 ∀ 空真前提不成立，仍取假。∎
+  解释：要求「所有劳动者既享有 X 又不享有 X」的规范体系自我瓦解——
+      这是审查立法内部一致性的极限形态。</div>
+        <div class="proof" data-page-node-id="nlY1WduXbE4W2EHBHVPxVE">【6】∃x(F(x)∧¬F(x))   ——存在自反矛盾
+  证：若存在 witness a 使 F(a)∧¬F(a)，该合取本身即矛盾式，不可能为真；
+      若无 witness，则存在式为假。两种情形皆假。∎
+  解释：任何单个事实都不可能「既是又不是」——这正是事实审查中
+      禁止自相矛盾认定的逻辑根据（禁止双重认定同一事实）。</div>
+        <div class="proof" data-page-node-id="meN7vkivnc2JP73rwMDSmO">【7】∀x F(x) ∧ ∃x¬F(x)   ——全称肯定与存在否定的冲突
+  证：设 ∃x¬F(x) 成立，取 witness a 有 ¬F(a)；而 ∀xF(x) 蕴含 F(a)，矛盾；
+      若 ∃x¬F(x) 为假，则整个合取为假。故恒假。∎
+  解释：「查实了所有人合规」与「发现一个违规者」不可并存——
+      证据体系内部出现此结构时必然有一个认定是错的，必须回溯重审。</div>
+      </div>
+    </details>
+
+    <details class="logi" data-page-node-id="bR014tNIYDCUvEdAZ8utUM"><summary data-page-node-id="FifbYpmL1Y54N9k96D8nPJ">三、互反核心公式（2 条）—— 维特根斯坦本源</summary>
+      <div class="body" data-page-node-id="r0JOUpugHpTDoLTFipWxa5">
+        <div class="t-item" data-page-node-id="KVmUMkUaVsc7mY4RbK8UHe"><span class="t-head" data-page-node-id="jYEvREb6cIx6ugkLZ9XgZW"><b data-page-node-id="DmaIBh4NadEadHMutJo1CZ">Taut(p) ↔ Cont(¬p)</b></span>
+        <div class="proof" data-page-node-id="SpwgfElSmAVMqKWx70Lsb7">推演（→）：⊨p ⇔ 对每一赋值 v：v(p)=T
+                        ⇔ 对每一赋值 v：v(¬p)=F        （¬ 的语义）
+                        ⇔ ¬p 恒假
+                        ⇔ Cont(¬p)                    ∎
+推演（←）：Cont(¬p) ⇔ ¬p 恒假 ⇔ ¬¬p 恒真 ⇔ ⊨p（第 10 条双否）⇔ Taut(p)  ∎</div>
+        <div class="t-der" data-page-node-id="30FZg2EmzYGKOzFA8GXKLh"><b data-page-node-id="wkcG2LmY3w76OJnvg7OdrS">配套解释：</b>重言式与矛盾式不是两类孤立的东西，而是经否定算子一一互反的两极：p 是重言式，当且仅当 ¬p 是矛盾式。</div>
+        <div class="t-der" data-page-node-id="q04Nil23Q6cvcwKcSBsmJQ"><b data-page-node-id="T5MAvIOml5lCfIYXRJj8Bv">本源注记（维特根斯坦《逻辑哲学论》4.46）：</b>重言式与矛盾式「不是世界的图像」——重言式无条件为真，对世界不做任何限定；矛盾式无条件为假，排除一切可能。4.462：t 恒真、f 恒假，现实命题居间。互反公式划定了「许可全域」与「禁止全域」的边界对应：规范体系把某个行为空间判为禁止（Cont），当且仅当其补空间整体许可（Taut 于补集上）。</div>
+        </div>
+        <div class="t-item" style="margin-top:12px" data-page-node-id="hvKKQC6sGU9T895OkEF5Lt"><span class="t-head" data-page-node-id="dpeMmvXvIjMI0cQVyFvCF2"><b data-page-node-id="xGShs3hziZpVUETRYUOWKh">Cont(p) ↔ Taut(¬p)</b></span>
+        <div class="proof" data-page-node-id="9cyysrQjGwCwDzCafcgNj8">推演：Cont(p) ⇔ p 恒假 ⇔ 对每一 v：v(p)=F ⇔ 对每一 v：v(¬p)=T ⇔ ⊨¬p ⇔ Taut(¬p)  ∎</div>
+        <div class="t-der" data-page-node-id="oFvtYUVpT15XHLmh6UB2Vp"><b data-page-node-id="AjfGMLAqYWuaIz7mLNebOV">配套解释：</b>与上一条对称互补。两条合起来构成一个对合（involution）：以 ¬ 为桥，重言域与矛盾域完整互镜像。<b data-page-node-id="MmKCNh8TgoYBGpMg81zG3c">在 LexChain 中的意义：</b>引擎的 DEFEATED（例外推翻）机制正是这个互反的工程化——原规则被例外推翻时，其否定（例外合取式）成为新的恒真前提；禁止条款 R42「F(解除)」成立，等价于其否定域「许可解除」被判定为空（矛盾域）。</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="logi" data-page-node-id="qfkXVg79mw3nuY1T0eRzjM"><summary data-page-node-id="ZtlpGMnyuAIfbaGT1FItpw">四、继不可说之物 · 道义逻辑全家族（SDL → CTD → PDL → …）—— 特征公理 + 推演示例 + 配套解释</summary>
+      <div class="body" data-page-node-id="rjyUdkxn8yhJFw3HOOWYoP">
+        <div class="t-der" style="margin-bottom:6px" data-page-node-id="St4eoYIIw5BxYlszjwnVbh"><b data-page-node-id="QYWkasXFa784FjNFSPm7sA">配套解释总纲：</b>「不可说之物」（维特根斯坦 6.421：伦理与规范「不可说，只可显示」）在分析哲学传统中无法用真值函项直接刻画——道义逻辑就是把「应当/许可/禁止」从不可说的伦理直观转化为<b style="color:var(--text)" data-page-node-id="mdCSutAi1CzGKZAz3p132K">可演算的模态系统</b>的百年努力。以下每个系统解决一个 SDL 的已知缺陷，标签标注其与 LexChain 引擎的现状关系。</div>
+        <div id="deoBody" data-page-node-id="idJ29kAK2F8L9pA0E2oFi2"></div>
+      </div>
+    </details>
+  </div>
+
+  <footer id="disclaimer" data-page-node-id="IwV3l2qTZqxQq0e7rcet5B">本工具输出为法律风险分析参考，不构成正式法律意见。条文以官方最新文本为准，重大事项请咨询执业律师。</footer>
+</div>
+
+<script>window.LEXCHAIN_STATIC = true;</script>
+<script src="./engine-browser.js"></script>
+<script>
+let SCHEMA = null;
+let FACT_STATE = {};
+const STATIC_MODE = Boolean(window.LEXCHAIN_STATIC);
+// 本地服务仍使用 Node API；GitHub Pages 则直接在浏览器中运行确定性引擎。
+const API_BASE = STATIC_MODE ? '' : ((location.protocol.startsWith('http') && location.port === '8787') ? '' : 'http://127.0.0.1:8787');
+
+const ST_LABEL = {VIOLATION:'违反', RISK:'风险', DEFENSIBLE:'待查证', POSSIBLE:'证据不足', PERMITTED:'许可成立', COMPLIANT:'合规', DEFEATED:'例外推翻', NOT_TRIGGERED:'不适用'};
+const V_CLASS = {'存在违法行为':'v-bad','存在法律风险':'v-warn','证据不足，待补事实':'v-warn','未发现违反本规则库情形':'v-ok'};
+
+async function init() {
+  if (STATIC_MODE) {
+    const rules = await (await fetch('./rules/labor-rules.json')).json();
+    window.LEXCHAIN_RULESET = rules;
+    SCHEMA = {
+      has_key: false,
+      has_ollama: false,
+      facts: rules.facts,
+      rulebase: rules.meta,
+      presets: [
+        {
+          name: '未签合同被辞退',
+          text: '我在一家公司工作了8个月，公司一直没有和我签书面劳动合同，上个月公司突然把我辞退了，也没有给任何补偿。',
+          facts: { employment_exists: true, months_employed: 8, written_contract_signed: false, terminated_by_employer: true }
+        },
+        {
+          name: '拖欠工资未缴社保',
+          text: '公司已经拖欠我三个月工资没有足额发放，社保也从半年前就停缴了，我打算辞职。',
+          facts: { employment_exists: true, wage_paid_on_time_full: false, social_insurance_paid: false, terminated_by_employer: false }
+        },
+        {
+          name: '试用期被辞退',
+          text: '我和公司签了三年合同，试用期6个月。试用期第2个月公司直接口头让我走人，没说任何理由。',
+          facts: { employment_exists: true, probation_agreed: true, probation_months: 6, contract_duration_months: 36, terminated_by_employer: true, probation_termination_reason_stated: false }
+        }
+      ]
+    };
+  } else {
+    SCHEMA = await (await fetch(API_BASE + '/api/schema')).json();
+  }
+  const kb = document.getElementById('keyBadge');
+  if (STATIC_MODE) {
+    kb.textContent = 'GitHub Pages 静态模式'; kb.className = 'badge warn';
+    document.getElementById('engineHint').textContent = '判定由浏览器端确定性规则引擎完成；自然语言使用关键词抽取，请核对事实面板';
+  }
+  else if (SCHEMA.has_key) { kb.textContent = '自然语言抽取 已就绪'; kb.className = 'badge ok'; }
+  else { kb.textContent = '未配置 DeepSeek Key（仅手动模式）'; kb.className = 'badge warn'; }
+  SCHEMA.facts.forEach(f => FACT_STATE[f.key] = null);
+  // 预设
+  const pz = document.getElementById('presets');
+  SCHEMA.presets.forEach(p => {
+    const b = document.createElement('span'); b.className = 'chip'; b.textContent = p.name;
+    b.onclick = () => { document.getElementById('eventText').value = p.text; analyzeText(p.facts); };
+    pz.appendChild(b);
+  });
+  renderFactPanel();
+}
+
+function renderFactPanel() {
+  const panel = document.getElementById('factPanel');
+  const groups = {};
+  SCHEMA.facts.forEach(f => (groups[f.group] = groups[f.group] || []).push(f));
+  let html = '';
+  for (const [g, fs] of Object.entries(groups)) {
+    html += `<div class="fact-group"><h3>${g}</h3>`;
+    fs.forEach(f => {
+      if (f.type === 'number') {
+        html += `<div class="fact-row"><label>${f.label}</label>
+          <input type="number" step="any" placeholder="未知" oninput="FACT_STATE['${f.key}'] = this.value === '' ? null : Number(this.value)"></div>`;
+      } else {
+        html += `<div class="fact-row"><label>${f.label}</label>
+          <div class="tri">
+            <button id="b-${f.key}-t" onclick="setFact('${f.key}', true)">是</button>
+            <button id="b-${f.key}-f" onclick="setFact('${f.key}', false)">否</button>
+            <button id="b-${f.key}-u" onclick="setFact('${f.key}', null)" class="on-unk">未知</button>
+          </div></div>`;
+      }
+    });
+    html += '</div>';
+  }
+  panel.innerHTML = html;
+}
+
+function setFact(key, val) {
+  FACT_STATE[key] = val;
+  ['t','f','u'].forEach(s => { const el = document.getElementById(`b-${key}-${s}`); if (el) el.className = ''; });
+  if (val === true) document.getElementById(`b-${key}-t`).className = 'on-yes';
+  else if (val === false) document.getElementById(`b-${key}-f`).className = 'on-no';
+  else document.getElementById(`b-${key}-u`).className = 'on-unk';
+}
+
+function numberInput(key) {
+  return document.querySelector(`input[oninput="FACT_STATE['${key}'] = this.value === '' ? null : Number(this.value)"]`);
+}
+
+function setFacts(facts) {
+  // 先整体重置：bool 走三态按钮，number 清空输入框（number 无按钮，不能调 setFact）
+  SCHEMA.facts.forEach(f => {
+    if (f.type === 'number') {
+      const inp = numberInput(f.key);
+      if (inp) inp.value = '';
+      FACT_STATE[f.key] = null;
+    } else setFact(f.key, null);
+  });
+  for (const [k, v] of Object.entries(facts || {})) {
+    const def = SCHEMA.facts.find(f => f.key === k);
+    if (!def) continue;
+    if (def.type === 'number') {
+      const inp = numberInput(k);
+      if (inp) { inp.value = v; FACT_STATE[k] = Number(v); }
+    } else setFact(k, v);
+  }
+}
+
+async function postJSON(url, body) {
+  if (STATIC_MODE && url === '/api/analyze') {
+    const supplied = body.facts || {};
+    const extraction = body.text ? staticExtract(body.text) : null;
+    const facts = extraction ? { ...extraction.facts, ...supplied } : { ...supplied };
+    return {
+      facts_used: facts,
+      extraction: extraction ? { ...extraction, extractor: '浏览器端关键词抽取（静态模式）' } : null,
+      report: window.LexChainBrowserEngine.analyze(facts, window.LEXCHAIN_RULESET)
+    };
+  }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch(API_BASE + url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+      const txt = await resp.text();
+      let data = null;
+      try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
+      if (!resp.ok || !data) throw new Error((data && data.error) || `服务异常（HTTP ${resp.status}${txt ? '' : '，空响应'}）`);
+      return data;
+    } catch (e) {
+      if (attempt === 1) throw e;
+      await new Promise(r => setTimeout(r, 600)); // 首次失败（网络抖动/连接竞态）自动重试一次
+    }
+  }
+}
+
+function staticExtract(text) {
+  const facts = {};
+  const normalized = String(text || '').replace(/[，。！？；、]/g, ' ');
+  const numberWords = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+  const number = (value) => /^\d+(?:\.\d+)?$/.test(value) ? Number(value) : numberWords[value];
+  const matchNumber = (pattern) => {
+    const m = normalized.match(pattern);
+    return m ? number(m[1]) : null;
+  };
+  if (/(公司|单位|雇主|老板)/.test(normalized) || /(工作|上班|入职)/.test(normalized)) facts.employment_exists = true;
+  const months = matchNumber(/([0-9一二两三四五六七八九十]+)\s*个?月/);
+  if (months !== null) facts.months_employed = months;
+  if (/(未|没|没有|一直没有|从未)[^\n]{0,16}(签|订)[^\n]{0,12}(书面)?劳动合同/.test(normalized) || /没签合同|未签合同/.test(normalized)) facts.written_contract_signed = false;
+  else if (/(签了|签订|签署)[^\n]{0,8}(劳动)?合同/.test(normalized)) facts.written_contract_signed = true;
+  if (/(辞退|开除|解除劳动合同|让.*走|裁员)/.test(normalized)) facts.terminated_by_employer = true;
+  if (/(拖欠|欠发|未足额|没有足额|工资.*没发|工资.*未发)/.test(normalized)) facts.wage_paid_on_time_full = false;
+  if (/(社保|社会保险)[^\n]{0,10}(停缴|未缴|没缴|没有缴|断缴)/.test(normalized)) facts.social_insurance_paid = false;
+  if (/试用期/.test(normalized)) facts.probation_agreed = true;
+  const probationMonths = matchNumber(/试用期\s*([0-9一二两三四五六七八九十]+)\s*个?月/);
+  if (probationMonths !== null) facts.probation_months = probationMonths;
+  if (/(三年|3年)/.test(normalized) && /合同/.test(normalized)) facts.contract_duration_months = 36;
+  if (/(没有|未|没)[^\n]{0,8}(理由|说明|告知)/.test(normalized) || /口头/.test(normalized)) facts.probation_termination_reason_stated = false;
+  return { facts, summary: text ? `已识别文本中的部分事实：${text}` : '' };
+}
+
+async function analyzeText(presetFacts) {
+  const btn = document.getElementById('analyzeBtn');
+  const text = document.getElementById('eventText').value.trim();
+  if (!text && !presetFacts) return;
+  btn.disabled = true;
+  try {
+    const data = await postJSON('/api/analyze', { text, facts: presetFacts || undefined });
+    if (data.facts_used) setFacts(cleanFacts(data.facts_used));
+    render(data);
+    hideError();
+  } catch (e) { showError('请求失败：' + e.message); }
+  btn.disabled = false;
+}
+
+async function analyzeFacts() {
+  try {
+    const data = await postJSON('/api/analyze', { facts: FACT_STATE });
+    render(data); hideError();
+  } catch (e) { showError('请求失败：' + e.message); }
+}
+
+function cleanFacts(facts) {
+  const clean = {};
+  for (const [k, v] of Object.entries(facts)) if (v !== null && v !== undefined && v !== '') clean[k] = v;
+  return clean;
+}
+
+function showError(msg) {
+  const box = document.getElementById('errBox');
+  box.textContent = msg; box.classList.remove('hidden');
+}
+function hideError() { document.getElementById('errBox').classList.add('hidden'); }
+
+function render(data) {
+  const r = data.report;
+  let html = '';
+
+  // 抽取摘要
+  if (data.extraction && data.extraction.summary) {
+    const src = data.extraction.extractor || 'LLM';
+    html += `<div class="card"><h2>案情概括（${src}）</h2><p style="font-size:14px">${data.extraction.summary}</p></div>`;
+  }
+
+  // 总判定
+  html += `<div class="verdict ${V_CLASS[r.verdict] || ''}">
+    <div><div class="v-main">总体判定：${r.verdict}</div>
+    <div class="counts">
+      <span>违反 <b style="color:var(--red)">${(r.status_counts.VIOLATION||[]).length}</b></span>
+      <span>风险/待查证 <b style="color:var(--amber)">${((r.status_counts.RISK||[]).length + (r.status_counts.DEFENSIBLE||[]).length)}</b></span>
+      <span>证据不足 <b style="color:var(--purple)">${(r.status_counts.POSSIBLE||[]).length}</b></span>
+      <span>许可成立 <b style="color:var(--green)">${(r.status_counts.PERMITTED||[]).length}</b></span>
+      <span>合规 ${(r.status_counts.COMPLIANT||[]).length}</span>
+      <span>例外推翻 ${(r.status_counts.DEFEATED||[]).length}</span>
+    </div></div>
+    <div class="v-sym">${r.verdict_symbol}<br>${r.engine}</div></div>`;
+
+  // 追问清单
+  if (r.missing_facts.length) {
+    html += `<div class="card"><h2>追问清单（补齐以下事实可消除不确定性）</h2><ul class="ask-list">`;
+    r.missing_facts.forEach(m => html += `<li>「${m.label}」——请补充。</li>`);
+    html += `</ul></div>`;
+  }
+
+  // 规则明细（先显示触发的，不适用折叠）
+  const active = r.rules.filter(x => x.status !== 'NOT_TRIGGERED');
+  const inactive = r.rules.filter(x => x.status === 'NOT_TRIGGERED');
+  html += `<div class="card"><h2>推理明细（规则库：${r.rulebase}）</h2>`;
+  active.forEach(x => {
+    html += `<div class="rule-card">
+      <div class="rule-head"><span class="st st-${x.status}">${ST_LABEL[x.status] || x.status}</span>
+        <span class="rid">${x.id}</span><span class="src">${x.source}</span></div>
+      <div class="law-text">「${x.text}」</div>
+      <div class="sym">符号层\n${x.symbol}${x.exceptions && x.exceptions.length ? '\n' + x.exceptions.map(e => `⊣ ${e.id}[${e.source}] ${renderSym(e)}`).join('\n') : ''}</div>
+      <ul class="nl-chain">${x.nlChain.map(s => `<li>${s}</li>`).join('')}</ul>
+      ${x.remedy ? `<div class="meta-note"><b>救济路径：</b>${x.remedy}</div>` : ''}
+      ${x.riskNote ? `<div class="meta-note"><b>风险提示：</b>${x.riskNote}</div>` : ''}
+    </div>`;
+  });
+  html += `<button class="toggle-all" onclick="document.getElementById('inactive').classList.toggle('hidden');this.textContent=this.textContent.includes('展开')?'收起不适用条文 ▲':'展开不适用条文 ▼'">展开不适用条文 ▼</button>
+    <div id="inactive" class="hidden">`;
+  inactive.forEach(x => {
+    html += `<div class="rule-card" style="opacity:.55"><div class="rule-head"><span class="st" style="background:rgba(139,148,158,.15);color:var(--muted)">不适用</span>
+      <span class="rid">${x.id}</span><span class="src">${x.source}</span></div></div>`;
+  });
+  html += `</div></div>`;
+
+  html += `<footer>${r.disclaimer}</footer>`;
+  document.getElementById('report').innerHTML = html;
+  document.getElementById('disclaimer').classList.add('hidden');
+  window.scrollTo({ top: document.getElementById('report').offsetTop - 20, behavior: 'smooth' });
+}
+
+function renderSym(e) {
+  return (e.eval.atoms || []).map(a => a.symbol).join(' ∧ ') + ' → ' + (e.eval.value === 'T' ? '成立' : e.eval.value === 'U' ? '待查证' : '不成立');
+}
+
+/* ==================== 理论基石：真值表推演引擎 ==================== */
+const TAUTS = [
+ {n:1, name:'排中律', expr:'p ∨ ¬p', vars:['p'], fn:v=>v.p||!v.p,
+  mean:'任何命题要么为真要么为假，不存在第三种真值——全部真值行结果皆为 ⊤。',
+  legal:'经典二值逻辑的地基。但注意：LexChain 引擎刻意<b>不</b>采用它——在 Kleene 三值逻辑中，事实 p=未知(U) 时 p∨¬p=U 而非 T，引擎正是通过放弃排中律来诚实输出「证据不足」而非硬判。'},
+ {n:2, name:'同一律（条件式）', expr:'p → p', vars:['p'], fn:v=>!v.p||v.p,
+  mean:'「若 p 则 p」——蕴含的真值表仅在前件真后件假这一行才为假，此处不可能发生。',
+  legal:'任何法律条文若连自身都不蕴含，规范体系即崩塌。它是「同一事实同一认定」的最小形式。'},
+ {n:3, name:'同一律（Leibniz）', expr:'A ≡ A', vars:['A'], fn:v=>v.A===v.A,
+  mean:'事物与自身同一（A=A）。莱布尼茨将其列为人类理性两大基石之一（另一为矛盾律）。',
+  legal:'符号化法律推理中，规则引用与事实代入必须满足同一性：第 X 条在推理链中出现两次时指同一条文——此律保证符号系统无「偷换」空间。'},
+ {n:4, name:'实质蕴含等值式', expr:'(p→q) ≡ (¬p∨q)', vars:['p','q'], fn:v=>((v.p?v.q:true)===(!v.p||v.q)),
+  mean:'「p 蕴含 q」等值于「非 p 或 q」（费洛蕴含）。四行真值逐行验证两式取值始终一致。',
+  legal:'法律推理引擎内部把「要件→后果」的条件规范统一编译为布尔运算的依据；也是程序中 if 判断与规范条文互相翻译的桥。'},
+ {n:5, name:'德摩根律 I', expr:'¬(p∧q) ≡ ¬p∨¬q', vars:['p','q'], fn:v=>(!(v.p&&v.q)===(!v.p||!v.q)),
+  mean:'否定「两者都成立」等值于「至少一个不成立」。',
+  legal:'规则库中例外（defeater）与禁止条件转换的代数根据：推翻一个合取要件只需击破其中一支——对应仲裁实务中「攻其一项要件即免责/驳斥」的策略。'},
+ {n:6, name:'德摩根律 II', expr:'¬(p∨q) ≡ ¬p∧¬q', vars:['p','q'], fn:v=>(!(v.p||v.q)===(!v.p&&!v.q)),
+  mean:'否定「至少一个成立」等值于「两者皆不成立」。',
+  legal:'追诉/追责时必须同时否定全部抗辩事由：引擎合规判定（breach 取否）即按此律展开为逐项事实核查。'},
+ {n:7, name:'双向蕴含即等值', expr:'(p→q)∧(q→p) ≡ (p↔q)', vars:['p','q'], fn:v=>(((!v.p||v.q)&&(!v.q||v.p))===(v.p===v.q)),
+  mean:'「互为充分条件」与「等值」是一回事——四个赋值行中左右两侧真值完全同步。',
+  legal:'「同工同酬」类规范的等值结构：认定 A 待遇 ⇔ 认定 A 情形，双向锁定。'},
+ {n:8, name:'假言三段论（传递律）', expr:'(p→q)∧(q→r) → (p→r)', vars:['p','q','r'], fn:v=>(!((!v.p||v.q)&&(!v.q||v.r)))||(!v.p||v.r),
+  mean:'蕴含可以传递：p 引出 q、q 引出 r，则 p 引出 r。',
+  legal:'<b>LexChain 跨规则传导链的逻辑基础</b>：R42（禁止解除）→ R87-2（违法解除）→ 2N 赔偿，即「规范定性→法律后果」的两次传递，每步均为保真的假言三段论。'},
+ {n:9, name:'析取三段论', expr:'(p∨q)∧¬p → q', vars:['p','q'], fn:v=>(!((v.p||v.q)&&!v.p))||v.q,
+  mean:'已知两者居其一、又排除其一，则另一必立。',
+  legal:'排除式认定：法律只能「二审终审/或裁或审」二者择一时，排除一项即锁定另一项；引擎中情形归属不明的判定分支亦依赖此律的排除前提。'},
+ {n:10, name:'双重否定律', expr:'p ≡ ¬¬p', vars:['p'], fn:v=>v.p===!!v.p,
+  mean:'否定之否定回到肯定。两个 ¬ 相互抵消。',
+  legal:'举证的语义：「未能证明不欠薪」≠「证明欠薪」——三值逻辑中 ¬U=U 恰恰阻断了这条经典通路，这是引擎拒绝把举证不能直接转为不利推定的形式原因（区别于 classical 的证明责任转移）。'}
+];
+
+const CONTS = [
+ {n:1, name:'矛盾律违例', expr:'p ∧ ¬p', vars:['p'], fn:v=>v.p&&!v.p,
+  mean:'命题与其否定同时成立——逐行验证每一赋值皆为 ⊥，无处可逃。',
+  legal:'矛盾律（A 不能既是 A 又非 A）是逻辑的第一原理。规范体系若同时命令并禁止同一行为（Oφ∧O¬φ），在 SDL 中即产生此结构——次协调道义逻辑（见下方家族）专门处理这种规范冲突而不让它爆炸。'},
+ {n:2, name:'自我不等', expr:'A ≢ A', vars:['A'], fn:v=>v.A!==v.A,
+  mean:'重言式 3（A≡A）的直接否定，恒假。',
+  legal:'符号系统若允许「同一符号指谓不同对象」，全部推导失效。引擎对规则 id 与事实 key 的唯一性校验即此律的工程化。'},
+ {n:3, name:'MP 与 MT 的崩溃组合', expr:'(p→q) ∧ p ∧ ¬q', vars:['p','q'], fn:v=>(!v.p||v.q)&&v.p&&!v.q,
+  mean:'同时断言「p 蕴含 q」「p 成立」「q 不成立」——modus ponens 与 modus tollens 的两个前提拼在一起必然矛盾。',
+  legal:'事实认定中的典型错误结构：既认定了要件事实成立（p），又认定其法律后果未发生（¬q），同时维持规范有效（p→q）——三者的并存就是矛盾认定，必须撤销其一。'},
+ {n:4, name:'前提下的自相冲突义务', expr:'(p→q) ∧ (p→¬q) ∧ p', vars:['p','q'], fn:v=>(!v.p||v.q)&&(!v.p||!v.q)&&v.p,
+  mean:'在前提 p 下，被同时要求导出 q 与 ¬q——义务自我冲突。',
+  legal:'<b>严谨性注记：</b>原式 (p→q)∧(p→¬q) 在 p 为假时可以满足（两条件皆空真），严格说并非矛盾式；<b>加上前提 p 才是真正的恒假式</b>——真值表引擎如实展示了这一点。法律对应物：同一规范在触发条件成立时同时命令作为与不作为（如「应急时既要救人又要保护现场设备」），属规范缺陷而非逻辑缺陷。'},
+ {n:8, name:'常假号 ⊥', expr:'⊥（F）', vars:[], fn:()=>false,
+  mean:'falsum：逻辑常数，无条件为假——零变量，唯一一行即为 ⊥。',
+  legal:'规范体系内部不一致的形式判据：若能从规范集 T 推出 ⊥（T ⊢ ⊥），则 T 爆炸（推出一切）——任何结论都「有效」，全部失效。可废止引擎通过优先级消解避免走到这一步。'}
+];
+
+function ttHTML(item) {
+  const vs = item.vars;
+  let rows = '', allT = true, allF = true;
+  const n = 1 << vs.length;
+  for (let i = 0; i < n; i++) {
+    const v = {};
+    vs.forEach((x, j) => v[x] = !!(i >> (vs.length - 1 - j) & 1));
+    const val = !!item.fn(v);
+    if (!val) allT = false; else allF = false;
+    const cells = vs.length ? vs.map(x => `<td>${v[x] ? 'T' : 'F'}</td>`).join('') : '<td>—</td>';
+    rows += `<tr>${cells}<td class="${val ? 'resT' : 'resF'}">${val ? '⊤' : '⊥'}</td></tr>`;
+  }
+  const verdict = allT ? '<span class="t-verdict tv-taut">⊨ 重言式 · 已证明</span>'
+    : allF ? '<span class="t-verdict tv-cont">⊥ 矛盾式 · 已证明</span>'
+    : '<span class="t-verdict tv-warn">可满足 · 非恒假（见注记）</span>';
+  let table = `<table class="tt"><tr>${vs.map(x => `<th>${x}</th>`).join('')}<th>整式</th></tr>${rows}</table>`;
+  return `<div class="tt-item">
+    <div class="t-head"><b>【${item.n}】${item.expr}</b>${verdict}</div>
+    <div class="t-der" style="color:var(--accent)">${item.name}</div>
+    ${table}
+    <div class="t-der"><b>含义：</b>${item.mean}</div>
+    <div class="t-der"><b>法律 / 引擎意义：</b>${item.legal}</div>
+  </div>`;
+}
+
+function renderLogi() {
+  document.getElementById('tautBody').innerHTML = TAUTS.map(ttHTML).join('');
+  document.getElementById('contBody').innerHTML = CONTS.map(ttHTML).join('');
+
+  /* ---------- 道义逻辑家族 ---------- */
+  const D = (name, ops, tag, tagCls, explain, ax, der) => ({name, ops, tag, tagCls, explain, ax, der});
+  const DEO = [
+   D('SDL 标准道义逻辑（Standard Deontic Logic）','O 应当 · P 许可 · F 禁止（≝O¬）','引擎已内建','ok',
+     '道义逻辑的现代起点（von Wright 1951）。把「应当/许可/禁止」当作模态算子，义务像必然性一样在可能世界间传递。最成熟也最基础，但存在承诺悖论、CTD 悖论等已知缺陷，后续系统多为修补它而生。',
+     'K: O(φ→ψ) → (Oφ→Oψ)\nD: Oφ → Pφ\nPφ ≡ ¬O¬φ（许可=不禁止）',
+     ['O(φ→ψ), Oφ ⊢ Oψ（K + 分离规则：义务封闭于逻辑后承）','Oφ ⊢ Pφ（D 公理：应当蕴含许可，排除「应然矛盾世界」）','Fφ ≡ O¬φ ⊢ P¬φ（禁止即应当不做，其不作为被许可）','LexChain：每条规则的 deontic 字段即此三元组的直接实现']),
+   D('模态基础（必然 / 可能）','□ 必然 · ◇ 可能','引擎已内建','ok',
+     '道义逻辑的母体。O 与 □ 同构：SDL 恰为模态系统 KD——「D」即 Deontic。Anderson 归约把义务化归为带惩罚命题的必然性，证明两者深层同源。',
+     '□φ ≡ ¬◇¬φ（必然=不可能不）\nK: □(φ→ψ)→(□φ→□ψ)\n4: □φ→□□φ；5: ◇φ→□◇φ（S5）',
+     ['Anderson 归约：Oφ ≝ □(¬φ→S)（S=惩罚/制裁命题）——「应当 φ」=「不 φ 必致制裁」','□(¬φ→S)∧□φ ⊢ □φ：义务与制裁体系自洽','LexChain：三值判定 T/F/U 与模态 □/◇ 的对应已编码在 evalCondition 中']),
+   D('CTD 反义务逻辑（Contrary-to-Duty）','O(ψ/φ) 条件义务','引擎已内建（defeater 实现）','ok',
+     '处理「违反义务后产生的补救义务」：本不应违约（O¬d），但若已违约则应赔偿（O(d/v)）。第二义务以「第一义务被违反」为前提，故称反义务。SDL 无法表达且会推出悖论，CTD 用条件化算子解决。',
+     'O(ψ/φ)：在 φ 情形下应当 ψ\n主义务 O¬φ 与次义务 O(φ/χ) 并存合法',
+     ['经典的 CTD 场景：O¬d（不应当违约）∧ O(v/d)（违约则应赔偿）','SDL 悖论：若 d→v 则由 O¬d 推出 O(v→d) 再与 O(v/d) 混淆得出 O(d)∧O¬d 矛盾','CTD 解法：次义务不进入主规范的逻辑闭包，而是条件触发','LexChain：R82 二倍工资义务以「未签合同」为触发、以「劳动者拒签」为 defeater——正是两层 CTD 结构']),
+   D('PDL 优先道义逻辑 + 加权聚合','⪰ 优先关系 · W 加权','路线图','',
+     '用「优先序」而非绝对算子定义义务：φ 是义务当且仅当 φ 在所有最优可能世界中成立。适合「合理期限」「重大」等不确定概念的定量化，也是规范冲突时按重要性取舍的形式工具。',
+     'Oφ ≝ ∀w′（w′ 为 ⪰-极大世界 → w′ ⊨ φ）\nW(φ) = Σᵢ wᵢ·satᵢ(φ)',
+     ['加权聚合：设规范集 {φ₁…φₙ} 权重 {w₁…wₙ}，合规度 W=Σwᵢ·satᵢ；W≥λ 判 O，λ−ε<W<λ 判待查证','leximax 规则：先比较未满足项中权重最高者，少者优先得到满足','用途示例：竞业限制中「用人单位利益 vs 劳动者择业自由」的多目标权衡']),
+   D('道义—认知交叉（Epistemic-Deontic）','O 义务 · K 认知（K前提）','引擎已内建','ok',
+     '义务与知识的交叉：行为人不能对不可知的事实承担义务（「法不强人所难」的认知面）。K 算子满足 Kφ→φ（知识必真），以此约束义务的生成域。',
+     'K(a,φ)→φ（知识为真）\nK(a,φ)∧O(a,φ→ψ) ⊢ O(a,ψ)',
+     ['K 前提认知：义务生成前提必须为「已知/可认知」事实——未知(U)事实不产生现实义务','LexChain：事实为 U 时规则状态降为 POSSIBLE 而非 VIOLATION，即此公理的实现','明知故犯的加重结构：B(a,Oφ)∧B(a,¬φ) ⊢ 主观可归责性 → 交由 BDL 系统（见下）']),
+   D('道义博弈逻辑（Deontic Game Logic）','Obl_Γ(a,φ) 策略义务','路线图','',
+     '把义务放到博弈结构中：主体 a 有义务保证 φ，当且仅当 a 存在一个策略，无论其他方如何行动都能使 φ 成立。解决「多主体交互中义务归属于谁」的问题。',
+     'Obl_Γ(a,φ) ≝ ∃σ∈Σ_a ∀σ₋∈Σ_{-a}：φ(σ,σ₋) 成立\nPer_Γ(a,φ) ≝ ¬Obl_Γ(a,¬φ)',
+     ['推演：若 Obl_Γ(a,φ) 且 φ→ψ 保持博弈不变，则 Obl_Γ(a,ψ)（策略义务随结果单调）','对偶：禁止 a 保证 ¬φ ⇔ Obl_Γ(a,φ)','用途：集体劳动关系（罢工/谈判）、竞业限制的策略交互建模']),
+   D('道义动态逻辑（Dynamic Deontic Logic, DDL）','[α] 全称动态 · ⟨α⟩ 存在动态','路线图','',
+     '义务的对象从「命题」升级为「行动/程序」：[α]φ 表示「每次执行行动 α 后 φ 都成立」，⟨α⟩φ 表示「存在一条执行路径使 φ 成立」。法定程序义务（如提前 30 日通知）天然是动态算子。',
+     '⟨α⟩φ ≡ ¬[α]¬φ（动态对偶）\nOφ ≝ [α*](violation → sanction)（Anderson 的动态化）',
+     ['[α](φ∧ψ) ⊢ [α]φ∧[α]ψ；⟨α⟩(φ∨ψ) ⊣⊢ ⟨α⟩φ∨⟨α⟩ψ（全称/存在的分配不对称）','全称动态审查程序合规：R41 经济性裁员「提前30日说明∧向劳动部门报告」即 [裁员程序](说明∧报告)','存在动态表达救济路径：⟨仲裁⟩(取得裁决)——存在一条可达路径']),
+   D('道义模糊逻辑（Fuzzy Deontic）','μ(O,φ)∈[0,1] 义务程度','路线图','',
+     '义务不再非有即无，而是有程度边界。「应当在合理期限内」的「合理」无法二值化，模糊逻辑用隶属度刻画义务的满足强度，并设 λ 截断阈值与边界带。',
+     'O_λφ ⇔ μ(φ) ≥ λ\nμ(φ∧ψ) = max(0, μφ+μψ−1)（Łukasiewicz t-范数）\nμ(φ→ψ) = min(1, 1−μφ+μψ)',
+     ['推演：μφ=0.7（及时支付程度），λ=0.6 → O_λφ 成立；若 λ=0.8 则落入边界带 → 输出「待查证」而非硬判','边界带（λ−ε, λ) 与引擎 U 值衔接：模糊性是程度问题，不确定性是证据问题，两者分治']),
+   D('道义时态逻辑（Temporal Deontic）','O_t 时刻义务 · X/F/G/H 时态算子','路线图','',
+     '义务随时间展开：「下一时刻应当」（X）、「直至……之前一直应当」（U/G）、「曾经应当」（P/H）。区分「义务持续被重申」与「一次义务持续有效」两种根本不同的规范结构。',
+     '□_t Oφ（每个时刻都重新产生义务）vs O(□_t φ)（一次义务要求持续满足）\nO(Xφ)：下一时刻应当 φ',
+     ['推演：X(支付工资) 与 G(不得扣押证件) 属不同义务类型——前者一次履行即消解，后者持续有效','追诉时效形式化：Oφ ∧ ¬φ ∧ Fₜ(主张) ∧ t>时效 ⟹ 义务存续但胜诉权消灭','LexChain 现状：时效提醒目前以文字风险提示实现，为时态化的替换点']),
+   D('霍费尔德法律本体论（Hohfeld）','8 原概念矩阵','部分内建','part',
+     '美国法学家霍费尔德 1913 年提出：一切法律关系可还原为 8 个原概念，构成「相关」（correlative，一枚硬币的两面）与「相反」（opposite，互斥）两组对子。这是法律概念符号化的第一块完整拼图——LexChain 规则库的「义务/许可/禁止」三类正是其子集。',
+     '',
+     ['「劳动者 claim（权利主张）」的相关项是「用人单位 duty（义务）」——R30 支付工资义务即此','「R39 辞退许可」= privilege（特权）：用人单位无义务不辞退','完整对应：F(解除)=duty(不解除) 的禁止面；引擎的 O/F/P 三算子覆盖 Hohfeld 的 duty/privilege 两对，power/immunity 两对（解除权、撤销权等形成权）为扩展方向']),
+   D('STIT 主事性逻辑（Seeing-To-It-That）','[a stit: φ]','路线图','',
+     ' Belnap 提出：义务必须落在主体「可控」的行动上。[a stit: φ] 表示「a 通过其选择保证 φ 成立」——排除 a 无力控制的事项，解决「义务归属的公平性」。',
+     'Obl(a, [a stit: φ])：义务对象必须是 a 的 stit 命题\n[a stit: φ] ⊢ φ 且 φ 由 a 的当前选择决定',
+     ['推演：「应当赔偿」的前提是「损害由 a 的选择造成」：¬[a stit: damage] ⟹ ¬Obl(a, comp)','应用：R39 过失性辞退中「严重违纪」须为劳动者 stit（本人可控）的行为——第三人原因不构成违纪辞退的事由']),
+   D('可废止逻辑（Defeasible Logic）','φ ⇒ ψ 可废止规则 · ≻ 优先级','引擎已内建','ok',
+     '推理规则不再是绝对有效，而是「除非有更强的反例」：结论可被 rebutting（结论冲突规则）或 undermining（攻击前提的规则）推翻。Nute、Governatori 传统。法律推理的默认形态——绝大多数法条都有但书与例外。',
+     'r: φ ⇒ ψ（可废止规则）\nr₁ ≻ r₂（r₁ 优先于 r₂）\n触发条件＋无相抗规则（或相抗规则被击败）⟹ 结论成立',
+     ['推演：r₁: employ⇒pay；r₂: refuseContract⇒¬pay；r₂ ≻ r₁ 且 refuse 成立 ⟹ ¬pay（DEFEATED）','两种攻击：rebutting 攻结论（例外直接反推）；undermining 攻前提（例外的例外打掉触发事实）','LexChain：exceptions 数组 + 例外成立>触发证据不足 的优先序即此系统的最小完备实现']),
+   D('输入/输出逻辑（Input/Output Logic）','(a,b) 输入→输出对','路线图','',
+     'Makinson & van der Torre：义务根本不是命题（无真值），而是从「输入情形」到「应当输出」的函数关系 (a,b)。绕开真值函项困境，规范冲突不再导致爆炸——因为根本不在真值层面运算。',
+     '推导规则：SI（弱化输入）· WO（强化输出）· AND · OR\n(a,b) 读作：输入 a 情形时应当输出 b',
+     ['推演：由 (a,b) 经 SI 得 (a∧c,b)——额外条件不改变义务；经 WO 得 (a,b∨c)——义务的强化版成立','Ross 悖论的消解：O(寄信) 在 I/O 中是 (⊤,寄信)，推不出 (⊤,寄信∨偷信)（WO 强化的是析取「输出内容」而非行为选项——语义解释权在系统外）','用途：处理义务冲突的三种策略（生成式/约束式/容忍式）选择']),
+   D('次协调道义逻辑（Paraconsistent Deontic）','容忍 Oφ∧O¬φ','路线图','',
+     '承认规范现实中大量存在真实冲突（法律部门交叉、新旧法衔接、地方法规冲突），但不让矛盾爆炸：从 Oφ∧O¬φ 不能任意推出 ψ。保留「矛盾局部化」后的大部分经典推理。',
+     'Oφ ∧ O¬φ ⊬ ψ（不爆炸）\nω-一致性：仅在被封禁的推导模式内失效',
+     ['推演：划出经典保真片段 C(Γ)=Γ 中不含冲突规范的子集，C(Γ) 上照常推理','冲突对 {Oφ, O¬φ} 标记为「待裁决」，交优先级/时序（新法优于旧法）消解','与 I/O 逻辑互补：I/O 从语义层避开矛盾，次协调从推理层容忍矛盾']),
+   D('语境道义逻辑（CDL, Contextual）','O(φ/ψ, c) 语境条件义务','路线图','',
+     '义务相对化于语境 c：同一行为在不同地区、行业、合同类型下义务不同。对拍基准中已记录的地域裁判口径差异（如二倍工资起算）正是其现实需求。',
+     'O(φ/ψ, c)：语境 c 中 ψ 情形下应当 φ\nO(φ/⊤, c) 为 c 语境中的无条件义务',
+     ['推演：c₁(全日制) ⊢ O(加班费/加班)；c₂(非全日制) 中同触发条件输出不同义务集','语境切换规则：c→c′ 时义务集按包含关系单调更新','LexChain：规则库按领域分文件的架构为语境参数化预留了接口']),
+   D('行为道义逻辑（ADL, Act-based）','E(a,α) 行为执行','部分内建','part',
+     '义务的承载者是行动类型而非事态：禁止「安排加班」这个动作，而非禁止「存在加班状态」。von Wright 行为逻辑传统。',
+     'F(α) ≝ O¬E(a,α)\nE(a,α)∧E(α→β) ⊢ E(a,β)（行为组合）',
+     ['推演：R9 禁止「扣押证件」是禁止行为类型 E(withhold)——即使事后归还，行为禁令已被违反','R44 加班费义务对象为「安排加班」行为，支付义务随行为发生而触发','与 DDL 区别：DDL 用路径量化表达行为，ADL 直接以行为词元为算子，后者更贴近法条措辞']),
+   D('信念—道义交叉（BDL）','B 信念 · O 义务','路线图','',
+     '主体对义务的信念影响归责：明知义务而违反（明知故犯）与不知义务的主观状态应区别对待。连接规范客观性与认知主观性。',
+     'B(a,Oφ) ∧ B(a,¬φ) ⊢ 故意违反（可归责性升级）\n¬B(a,Oφ) 不导致 ¬Oφ（义务不因不知而消灭）',
+     ['推演：Oφ 客观成立；B(a,¬φ)∧B(a,Oφ) → 加重；B(a,Oφ)∧¬φ∧¬B(a,¬φ) → 过失','法律对应：「不知法不免责」的道义形式化——B 层只影响量罚不影响义务存在']),
+   D('量化动态道义逻辑（Quantified DDL）','∀x · [α] · O 三层嵌套','路线图','',
+     '一阶量化、动态算子、道义算子的完整嵌套体系，表达「对每个对象 x，实施行为 α(x) 之后应当 φ(x)」这类完整法律规范形态。',
+     'Obl(∀x [α(x)] φ(x))：对每个 x，执行 α(x) 后 φ(x) 应成立\n量化与动态可交换：∀x[α]φ ⊣⊢ [α]∀xφ（当 x 不在 α 中被修改时）',
+     ['推演：R58-SI 社保义务形式化为 Obl(∀w∈员工 [入职(w)] 登记(w)∧缴费(w))','交换律失效的情形：x 被 α 修改时（如「招用 x」改变 x 的身份）需小心排序——立法漏洞常藏于此']),
+   D('多主体可废止道义逻辑（MADL）','O_G 群体义务 + 各主体规则库','路线图','',
+     '每个主体有独立可废止规则库与优先序，合并时冲突消解；群体义务分解为成员的 stit 分量。处理劳动集体关系、多方合同等天然多主体场景。',
+     'Obl_G(φ) ≝ ∧_{a∈G} Obl(a, [a stit: φ_a])（φ 分解为各成员任务）\n合并规则：≻ 偏序在主体间可比时全局消解',
+     ['推演：用人单位 O_G(社保) 分解为 [人事 stit: 登记] ∧ [财务 stit: 缴费]——内部推诿不消灭任一分量义务','主体间冲突：劳务派遣中派遣单位与用工单位规则库合并，≻ 无法消解时输出「连带不明确」待查证']),
+   D('道义高阶逻辑（Deontic HOL）','量化规范谓词 · λ 抽象','路线图','',
+     '把「规范谓词」本身作为量化对象：可以对「义务」的性质做断言（如「所有义务都可执行」），λ 抽象把「作为 F 者」从个体层面提升为谓词层面。',
+     '∀P(Obl(P) ∧ 定效力(P) → P(c))：一切有效义务均可主张\nO(λx.F(x))：以谓词为义务承载',
+     ['推演：元规则「下位规范不得违反上位规范」= ∀q∀r(依据(q,r) ∧ Obl(r) → ¬Obl(¬r_上位))','HOL 的代价：可判定性丧失，仅用于元规范层，个体规范层保持一阶']),
+   D('道义自指悖论消解','层级化 · 根基化','路线图','',
+     '「本规范废除本规范」「本义务的义务是不履行本义务」——自指使规范系统失去根基。解法移植自 Tarski 层级与类型论：规范分层，每层只能谈论更低层。',
+     '层级条件：n 层规范只可约束 ≤ n−1 层规范\n根基条件：存在非自指的根基规范层（事实触发层）',
+     ['推演：O(s(s)) 非法（s 引用自身层级）；改写为 O(s) 于第 n 层 + O(O(s)) 于第 n+1 层——分层后良基','LexChain 映射：规则库（对象层）与引擎（元层）严格分离，规则永不修改规则——架构本身即层级消解']),
+   D('道义证明—认知交叉（JEM）','J 证明 · K 认知','引擎已内建','ok',
+     '证明逻辑（Justification Logic，Artemov）：Kφ ≝ Jφ∧φ——「知道」=「有证明且为真」。移植到道义：义务不仅要求结果正确，还要求每一步可证成——这正是「透明可审计」诉求的逻辑形态。',
+     'K(φ) ≝ J(φ) ∧ φ\nO(a, J(φ))：应当提供 φ 的证明',
+     ['推演：R82 判 VIOLATION 时必须附符号链（要件∧值、例外求值、defeater 状态）——无 J 分量的结论不输出','LexChain：双层呈现（符号层=J、自然语言层=可读化）即 O(J(φ)) 的 UI 实现：每个判定自带证明']),
+   D('反义务博弈的子博弈完美均衡','σ* 策略组合 · 纳什均衡','路线图','',
+     '把 CTD 建模为博弈：违反义务不是错误而是「进入惩罚子博弈」。义务体系对应均衡结构：理性主体不违反义务当且仅当违反后的子博弈中惩罚使其无利可图。',
+     '子博弈完美：σ* 对每个非初始历史 h，σ*|ₕ 是子博弈 h 的纳什均衡\n纳什均衡：∀a∀σ′_a: u_a(σ*) ≥ u_a(σ′_a, σ*₋ₐ)',
+     ['推演：违约成本 c（赔偿义务 O(v/d) 的量化）> 违约收益 b 时，守约为均衡策略——义务通过制裁结构「自我实施」','b>c 时义务依赖外部执行（诉讼威慑）：法 enforcement 的博弈论根据','用途：违约金条款（R22）有效性的均衡验证——威慑水平=违约概率的函数']),
+   D('超矢列道义演算（Hypersequent）','Γ⊢Δ | Γ′⊢Δ′ 多组件','路线图','',
+     '矢列演算的并行化：多个矢列组件并列，规则可跨组件交互。适合处理多规范体系并行（国家法/地方法/行业规则）时的模态传播控制。',
+     '组件：Γ₁⊢Δ₁ | Γ₂⊢Δ₂ | …\nO-引入规则：⊢φ | Γ⊢Δ ⟹ ⊢Oφ | Γ⊢Δ（模态化仅限单组件内）',
+     ['推演：跨组件规则受限于「共享前提」条件——无交互的规范系统间不发生非法的义务传递','S5 型超矢列系统可内部化「规范体系整体一致性」的元判断']),
+   D('自适应道义逻辑（Adaptive Logic）','Ab 反常标记 · 动态撤销','路线图','',
+     'Diderik Batens：在「正常时」成立的规范默认有效，一旦反常事实 Ab 进入推导，动态撤销依赖它的结论——证明过程自修正。与三值 U 的区别：U 是静态未知，AL 是动态可撤销的默认。',
+     '默认假设：Ab 不出现（正常性假设）\n标记规则：结论 φ 被标记 ⇔ 推导 φ 的路上引入了 Ab',
+     ['推演：规则「合同有效⇒履行」依赖「无欺诈」(Ab)；一旦引入欺诈事实，依赖它的履行义务自动撤销','与 LexChain 对拍：C24「年假书面放弃」目前静态判 DEFEATED，AL 化后可支持「先判后撤」的增量办案流程']),
+   D('反常识公式集（Deontic Paradoxes）',' SDL 的已知反例目录','参考','',
+     '道义逻辑发展史上的著名「反常识」案例——它们不证明逻辑错了，而是揭示把法律语言直译进 SDL 会丢什么。每一个悖论都是后续系统（CTD/PDL/I-O）的诞生理由。',
+     'Ross 悖论\nGood Samaritan 悖论\nForrester 悖论',
+     ['Ross 悖论：O(寄信) ⊢ O(寄信∨偷信)——义务不能这样强化：析取扩张把许可塞进了义务','Good Samaritan：O¬(抢劫∧救助) ⊢ O¬救助——SDL 惩罚救人：义务的合取分解在事态描述上反直觉','Forrester：O¬杀 ∧ (杀→O(轻杀)) → O(轻杀)∧O¬杀 结构性冲突——必须 CTD 分层（违反前禁/违反后补救）','共同教训：义务对象、时序、层级必须显式形式化——LexChain 的 trigger/exception/传导三分离即此教训的工程化']),
+   D('超赋值道义逻辑（Supervaluationist）','precisification 精化','路线图','',
+     '处理模糊谓词：「合理期限」没有唯一精确含义，但有多个合法精化（precisification）。超赋值主义：φ 为超真 ⇔ 在所有精化下都真。义务超真 ⇔ 无论「合理」如何精确化都成立。',
+     'φ 超真 ⇔ ∀p∈Prec: p(φ)=T\nOφ 超真 ⇔ φ 在每个合法精化下均义务',
+     ['推演：「30 日」是「合理期限」的精化之一；若某义务在「30日」「60日」「90日」全部精化下都成立 → 超真 → 判定；仅部分成立 → 超假与超真之间 → 输出「待查证+列出分歧精化」','与模糊逻辑分工：模糊逻辑给程度（μ∈[0,1]），超赋值给「哪些解释分歧」——前者量化、后者列举']),
+   D('多模态融合极限表达','L₁⊕L₂ 融合 · Π 乘积','路线图','',
+     '把前面所有系统的算子装进一个语言：模态逻辑的融合（fusion）定理保证两套正规模态系统并置仍一致。极限形态是道义×认知×动态×时态×博弈权利的五模态嵌套语言。',
+     '融合一致性定理：L₁ 与 L₂ 一致 ⟹ L₁⊕L₂ 一致（语言并、公理并）\n乘积积 Π：加交互公理实现跨模态约束',
+     ['极限示例：O(□_t ⟨仲裁⟩ K(要件事查证)) ——「应当保证：始终存在一条仲裁路径使要件事实被查明」','交互公理示例：Oφ→[α]Oφ（义务不因程序执行而消失，除非 α 本身是履行）','工程意义：每个新模态作为独立模块挂载，融合定理保证不互相腐蚀——LexChain 模块化架构的理论依据']),
+   D('元规范自指道义公式','O(Oφ) 二阶规范','路线图','',
+     '规范可以谈论规范：O(Oφ)「应当履行应当」（元规范层级）、合法性元规范「规范制定程序本身应当合规」。自指风险与第 21 条同源，靠层级区分对象语言与元语言。',
+     'O(Oφ)：二阶义务——「‘应当 φ’ 这一规范本身应当被遵守」\n层级条件：元规范层 ≠ 对象规范层',
+     ['推演：立法程序合规 = 元规范；「违反元规范制定的对象规范」效力待定——层级化后可推导「程序瑕疵→规范效力降级」','LexChain：规则库版本管理（meta 字段、对拍回归）就是元规范的工程形态——「规则如何被修改」本身受规则约束']),
+   D('超推导道义演算（Superdeduction）','T⊢φ** 标记推导闭包','引擎已内建','ok',
+     '把规范集 T 作为理论整体嵌入一阶演算：义务不是逐条匹配，而是 T 上推导闭包的机械生成——每条结论带完整推导标记。这是「规则为骨」路线的理论极限形态：法律适用=在规范理论上跑证明器。',
+     'Obl_T(φ) ⇔ T ⊢ φ**（**=道义标记，区分规范结论与事实结论）\n闭包单调性：T⊆T′ ⟹ Obl_T ⊆ Obl_T′',
+     ['推演：LexChain 引擎即 T 上的有标记闭包器——rules 库=T，analyze=闭包计算，符号层输出=推导标记','超推导 vs RAG：闭包是确定性的、可复现的；RAG 是概率的——两者的可审计性差异即本项目「规则为骨、LLM 为肉」立场的逻辑根据','局限与方向：闭包要求 T 良基（无自指、无冲突），正是第 21/29 条系统保证的性质'])
+  ];
+
+  const HOH = `
+   <div class="deo-card"><div class="deo-head"><span class="dn">附：霍费尔德 8 原概念矩阵（Hohfeld 1913）</span><span class="tag part">部分内建</span></div>
+   <div class="t-der" style="margin-top:6px"><b>配套解释：</b>左列为「权利语言」，右列为「义务语言」，同一法律关系的两种说法。相关对=同一关系的两面（一方有权利主张，另一方必有义务）；相反对=同一方的互斥状态。</div>
+   <table class="hoh">
+     <tr><th>概念</th><th>相关（correlative）</th><th>相反（opposite）</th></tr>
+     <tr><td>权利主张 claim</td><td class="pair">义务 duty</td><td class="pair">无权利 no-right</td></tr>
+     <tr><td>特权 privilege</td><td class="pair">无权利 no-right</td><td class="pair">义务 duty</td></tr>
+     <tr><td>权力 power</td><td class="pair">责任 liability</td><td class="pair">无能力 disability</td></tr>
+     <tr><td>豁免 immunity</td><td class="pair">无能力 disability</td><td class="pair">责任 liability</td></tr>
+   </table>
+   <div class="t-der" style="margin-top:6px"><b>引擎映射：</b>O/F/P 三算子覆盖 duty/privilege 对（义务与许可）；power（形成权：解除权、撤销权）与 immunity（豁免：42 条特殊保护期）两对为扩展方向——R42 实质是给劳动者 immunity、给用人单位 disability。</div></div>`;
+
+  document.getElementById('deoBody').innerHTML =
+    DEO.map(d => `<div class="deo-card">
+      <div class="deo-head"><span class="dn">${d.name}</span><span class="dops">${d.ops}</span><span class="tag ${d.tagCls}">${d.tag}</span></div>
+      <div class="t-der" style="margin-top:6px"><b>配套解释：</b>${d.explain}</div>
+      ${d.ax ? `<div class="ax">特征公理\n${d.ax}</div>` : ''}
+      <ul class="der-list">${d.der.map(x => `<li>${x}</li>`).join('')}</ul>
+    </div>`).join('') + HOH;
+}
+
+renderLogi();
+init();
+</script>
+</body>
+</html>

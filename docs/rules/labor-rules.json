@@ -1,0 +1,704 @@
+{
+  "meta": {
+    "domain": "labor",
+    "name": "劳动纠纷规则库 v0.5（验证集 34 规则）",
+    "source_laws": ["中华人民共和国劳动合同法", "劳动合同法实施条例", "中华人民共和国劳动法", "中华人民共和国社会保险法", "工资支付暂行规定", "职工带薪年休假条例", "企业职工带薪年休假实施办法"],
+    "note": "每条规则 = 触发要件(AND/OR 嵌套) + 例外(defeater) + 道义结论 + 违约检查。事实三值：true/false/unknown。跨规则传导规则：R87-2（42条禁止→2N）、R87-3（违法终止→2N）、R82-3（应订无固定未订→二倍工资）。"
+  },
+  "facts": [
+    {"key": "employment_exists", "label": "存在劳动关系（已实际用工）", "type": "bool", "group": "基础事实"},
+    {"key": "months_employed", "label": "实际用工时长（月）", "type": "number", "group": "基础事实"},
+    {"key": "written_contract_signed", "label": "已订立书面劳动合同", "type": "bool", "group": "合同"},
+    {"key": "worker_refused_contract", "label": "未签约系劳动者拒不订立所致", "type": "bool", "group": "合同"},
+    {"key": "employer_written_termination_notice", "label": "单位已书面通知终止劳动关系", "type": "bool", "group": "合同"},
+    {"key": "contract_duration_months", "label": "劳动合同期限（月，无固定期限填 0）", "type": "number", "group": "合同"},
+    {"key": "continued_after_expiry", "label": "合同期满后继续用工未续订", "type": "bool", "group": "合同"},
+    {"key": "contract_renewed", "label": "合同期满后已续订书面合同", "type": "bool", "group": "合同"},
+    {"key": "indefinite_contract_honored", "label": "已按无固定期限合同对待（满一年未签情形）", "type": "bool", "group": "合同"},
+    {"key": "probation_agreed", "label": "约定了试用期", "type": "bool", "group": "试用期"},
+    {"key": "probation_months", "label": "试用期约定时长（月）", "type": "number", "group": "试用期"},
+    {"key": "probation_wage_compliant", "label": "试用期工资符合法定下限", "type": "bool", "group": "试用期"},
+    {"key": "probation_only_once", "label": "同一单位仅约定过一次试用期", "type": "bool", "group": "试用期"},
+    {"key": "probation_termination_reason_stated", "label": "试用期解除时已向劳动者说明理由", "type": "bool", "group": "试用期"},
+    {"key": "probation_ground_legal", "label": "试用期解除存在法定事由（39条或40条第一、二项情形）", "type": "bool", "group": "试用期"},
+    {"key": "terminated_by_employer", "label": "单位单方解除/辞退", "type": "bool", "group": "解除与终止"},
+    {"key": "worker_separated", "label": "劳动关系已解除或终止", "type": "bool", "group": "解除与终止"},
+    {"key": "separation_certificate_issued", "label": "单位已出具解除/终止证明", "type": "bool", "group": "解除与终止"},
+    {"key": "ground_severe_misconduct_39", "label": "存在39条情形（严重违纪、欺诈、被追究刑责等）", "type": "bool", "group": "解除与终止"},
+    {"key": "ground_40_with_procedure", "label": "存在40条情形且已提前30日书面通知或支付代通知金", "type": "bool", "group": "解除与终止"},
+    {"key": "ground_layoff_41_procedure", "label": "存在41条裁员情形且履行了法定程序", "type": "bool", "group": "解除与终止"},
+    {"key": "mutual_agreement_employer_proposed", "label": "协商一致解除且由单位提出", "type": "bool", "group": "解除与终止"},
+    {"key": "contract_expired_termination", "label": "合同期满终止", "type": "bool", "group": "解除与终止"},
+    {"key": "employer_renewed_same_or_better", "label": "单位维持或提高条件续订而劳动者拒绝", "type": "bool", "group": "解除与终止"},
+    {"key": "worker_special_protection", "label": "劳动者处于42条特殊保护（三期/工伤医疗期/职业病危害等）", "type": "bool", "group": "解除与终止"},
+    {"key": "wage_paid_on_time_full", "label": "工资已及时足额支付", "type": "bool", "group": "报酬与社保"},
+    {"key": "social_insurance_paid", "label": "已依法缴纳社会保险", "type": "bool", "group": "报酬与社保"},
+    {"key": "overtime_workday_hours", "label": "工作日延时加班小时数", "type": "number", "group": "加班"},
+    {"key": "overtime_weekend_hours", "label": "休息日加班小时数", "type": "number", "group": "加班"},
+    {"key": "overtime_holiday_hours", "label": "法定节假日加班小时数", "type": "number", "group": "加班"},
+    {"key": "overtime_paid_correctly", "label": "加班费已按法定标准支付", "type": "bool", "group": "加班"},
+    {"key": "noncompete_clause", "label": "约定了竞业限制条款", "type": "bool", "group": "竞业限制"},
+    {"key": "noncompete_months", "label": "竞业限制期限（月）", "type": "number", "group": "竞业限制"},
+    {"key": "noncompete_compensation_paid", "label": "竞业限制经济补偿已按月支付", "type": "bool", "group": "竞业限制"},
+    {"key": "double_wage_paid", "label": "二倍工资差额已支付", "type": "bool", "group": "履行情况"},
+    {"key": "severance_paid", "label": "经济补偿已支付", "type": "bool", "group": "履行情况"},
+    {"key": "compensation_2n_paid", "label": "违法解除赔偿金已支付", "type": "bool", "group": "履行情况"},
+    {"key": "wages_paid_for_void_contract", "label": "合同无效期间已付出劳动的报酬已支付", "type": "bool", "group": "履行情况"},
+    {"key": "special_training_agreed", "label": "单位提供了专项培训费用并约定服务期", "type": "bool", "group": "培训与违约金"},
+    {"key": "penalty_on_worker_agreed", "label": "约定了由劳动者承担违约金", "type": "bool", "group": "培训与违约金"},
+    {"key": "service_penalty_compliant", "label": "服务期违约金未超过培训费用及未履行部分分摊额", "type": "bool", "group": "培训与违约金"},
+    {"key": "penalty_context_service_period", "label": "该违约金约定对应服务期（专项培训）情形", "type": "bool", "group": "培训与违约金"},
+    {"key": "penalty_context_noncompete", "label": "该违约金约定对应竞业限制情形", "type": "bool", "group": "培训与违约金"},
+    {"key": "layoff_headcount", "label": "本次经济性裁员人数", "type": "number", "group": "解除与终止"},
+    {"key": "layoff_ratio_over_10pct", "label": "裁减不足20人但占职工总数10%以上", "type": "bool", "group": "解除与终止"},
+    {"key": "layoff_explained_30days_advance", "label": "已提前30日向工会或全体职工说明情况并听取意见", "type": "bool", "group": "解除与终止"},
+    {"key": "layoff_reported_to_authority", "label": "裁员方案已向劳动行政部门报告", "type": "bool", "group": "解除与终止"},
+    {"key": "authority_ordered_payment", "label": "劳动行政部门已责令限期支付（拖欠报酬/加班费/经济补偿）", "type": "bool", "group": "报酬与社保"},
+    {"key": "order_deadline_passed", "label": "责令支付的期限已届满", "type": "bool", "group": "报酬与社保"},
+    {"key": "arrearage_still_unpaid", "label": "责令期限届满后仍未支付", "type": "bool", "group": "报酬与社保"},
+    {"key": "contract_void_fraud_or_exclusion", "label": "合同存在无效情形（欺诈胁迫/乘人之危/单位免除法定责任、排除劳动者权利）", "type": "bool", "group": "合同"},
+    {"key": "cumulative_work_years", "label": "劳动者累计工作年限（年，含跨单位累计）", "type": "number", "group": "年休假"},
+    {"key": "annual_leave_unused_days", "label": "当年度应休未休年休假天数", "type": "number", "group": "年休假"},
+    {"key": "annual_leave_300_paid", "label": "未休年休假已按日工资300%支付报酬", "type": "bool", "group": "年休假"},
+    {"key": "annual_leave_worker_waived", "label": "因本人原因书面提出不休年休假", "type": "bool", "group": "年休假"},
+    {"key": "probation_exceeded_cap", "label": "约定试用期超过法定上限", "type": "bool", "group": "试用期"},
+    {"key": "probation_excess_served", "label": "超上限的试用期已实际履行", "type": "bool", "group": "试用期"},
+    {"key": "probation_excess_compensation_paid", "label": "已按超期期间支付赔偿金", "type": "bool", "group": "试用期"},
+    {"key": "wage_above_3x_social_avg", "label": "月工资高于当地社平工资三倍", "type": "bool", "group": "报酬与社保"},
+    {"key": "severance_obligation_exists", "label": "存在应支付经济补偿的法定情形", "type": "bool", "group": "履行情况"},
+    {"key": "severance_cap_applied", "label": "经济补偿已按社平三倍封顶基数与12年上限计算", "type": "bool", "group": "履行情况"},
+    {"key": "id_card_withheld", "label": "扣押了劳动者居民身份证等证件", "type": "bool", "group": "入职与证件"},
+    {"key": "deposit_or_property_collected", "label": "要求提供担保或以押金/服装费等名义收取财物", "type": "bool", "group": "入职与证件"},
+    {"key": "continuous_work_years", "label": "在本单位连续工作年限（年）", "type": "number", "group": "合同"},
+    {"key": "renewed_twice_fixed_term", "label": "已连续订立二次固定期限劳动合同", "type": "bool", "group": "合同"},
+    {"key": "indefinite_contract_granted", "label": "已依法订立无固定期限劳动合同", "type": "bool", "group": "合同"},
+    {"key": "worker_requests_fixed_term", "label": "劳动者主动提出订立固定期限劳动合同", "type": "bool", "group": "合同"},
+    {"key": "worker_rescinded_38", "label": "劳动者已依第三十八条事由解除劳动合同（被迫解除）", "type": "bool", "group": "解除与终止"},
+    {"key": "months_after_expiry", "label": "合同期满后继续用工时长（月）", "type": "number", "group": "合同"},
+    {"key": "weekend_overtime_compensated", "label": "休息日加班已全部安排补休（未付200%工资）", "type": "bool", "group": "加班"},
+    {"key": "monthly_overtime_hours", "label": "当月延长工作时间合计（小时）", "type": "number", "group": "加班"},
+    {"key": "part_time_employed", "label": "属非全日制用工（小时计酬）", "type": "bool", "group": "非全日制"},
+    {"key": "part_time_daily_hours", "label": "非全日制平均每日工作时长（小时）", "type": "number", "group": "非全日制"},
+    {"key": "part_time_weekly_hours", "label": "非全日制每周累计工作时长（小时）", "type": "number", "group": "非全日制"},
+    {"key": "part_time_paid_within_15days", "label": "报酬按不超过15日周期结算支付", "type": "bool", "group": "非全日制"},
+    {"key": "wage_deduction_for_damage", "label": "因劳动者过错造成损失而被从工资中扣除赔偿", "type": "bool", "group": "报酬与社保"},
+    {"key": "deduction_over_20pct", "label": "单月扣除额超过当月工资20%", "type": "bool", "group": "报酬与社保"},
+    {"key": "deduction_below_min_wage", "label": "扣除后剩余工资低于当地最低工资标准", "type": "bool", "group": "报酬与社保"}
+  ],
+  "rules": [
+    {
+      "id": "R30",
+      "source": "《劳动合同法》第三十条",
+      "text": "用人单位应当按照劳动合同约定和国家规定，向劳动者及时足额支付劳动报酬。用人单位拖欠或者未足额支付劳动报酬的，劳动者可以依法向当地人民法院申请支付令，人民法院应当依法发出支付令。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "wage_paid_on_time_full", "eq": false}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "及时足额支付劳动报酬", "symbol": "O(employer, PayWageFull)"},
+      "breach": {"fact": "wage_paid_on_time_full", "eq": true},
+      "remedy": "可向当地人民法院申请支付令；可向劳动监察部门投诉；拖欠工资亦构成第三十八条被迫解除事由，解除后可主张经济补偿。",
+      "risk_note": "拖欠工资可能同时触发第三十八条解除权与经济补偿义务。"
+    },
+    {
+      "id": "R38",
+      "source": "《劳动合同法》第三十八条",
+      "text": "用人单位未及时足额支付劳动报酬、未依法为劳动者缴纳社会保险费等的，劳动者可以解除劳动合同（节选形式化）。",
+      "category": "permission",
+      "trigger": {"any": [
+        {"all": [{"fact": "employment_exists", "eq": true}, {"fact": "wage_paid_on_time_full", "eq": false}]},
+        {"all": [{"fact": "employment_exists", "eq": true}, {"fact": "social_insurance_paid", "eq": false}]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "PERMISSION", "bearer": "劳动者", "act": "解除劳动合同（被迫解除）", "symbol": "P(worker, Rescind)"},
+      "consequence_note": "依第三十八条解除的，衔接第四十六条：用人单位应当支付经济补偿。",
+      "remedy": "行使解除权时建议书面通知并载明被迫解除事由（如'因单位未足额支付劳动报酬解除'），保留证据。",
+      "risk_note": "解除通知的事由表述直接影响经济补偿能否获支持，事由须真实且符合第三十八条列举情形。"
+    },
+    {
+      "id": "R82",
+      "source": "《劳动合同法》第八十二条第一款",
+      "text": "用人单位自用工之日起超过一个月不满一年未与劳动者订立书面劳动合同的，应当向劳动者每月支付二倍的工资。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "months_employed", "op": ">", "value": 1},
+        {"fact": "months_employed", "op": "<", "value": 12},
+        {"fact": "written_contract_signed", "eq": false}
+      ]},
+      "exceptions": [
+        {
+          "id": "X82-1",
+          "source": "《劳动合同法实施条例》第五条、第六条",
+          "desc": "未签约系劳动者拒不订立所致，且用人单位已书面通知终止劳动关系",
+          "all": [
+            {"fact": "worker_refused_contract", "eq": true},
+            {"fact": "employer_written_termination_notice", "eq": true}
+          ]
+        }
+      ],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "每月支付二倍工资（差额）", "symbol": "O(employer, PayDoubleWage)"},
+      "breach": {"fact": "double_wage_paid", "eq": true},
+      "remedy": "可主张自用工之日起满一个月的次日至补订书面合同前一日的二倍工资差额（仲裁时效一般按月逐笔起算，及时申请劳动仲裁）。",
+      "risk_note": "用工满一年未签书面合同的，视为已订立无固定期限劳动合同（第十四条第三款），二倍工资上限通常计算至满一年前一日。"
+    },
+    {
+      "id": "R44",
+      "source": "《劳动合同法》第四十四条",
+      "text": "安排劳动者延长工作时间的，支付不低于工资的百分之一百五十的工资报酬；休息日安排工作又不能安排补休的，支付不低于百分之二百的工资报酬；法定休假日安排工作的，支付不低于百分之三百的工资报酬。（原《劳动法》第四十四条标准，劳动合同法第三十一条、第八十五条衔接）",
+      "category": "obligation",
+      "trigger": {"any": [
+        {"all": [{"fact": "employment_exists", "eq": true}, {"fact": "overtime_workday_hours", "op": ">", "value": 0}]},
+        {"all": [{"fact": "employment_exists", "eq": true}, {"fact": "overtime_weekend_hours", "op": ">", "value": 0}]},
+        {"all": [{"fact": "employment_exists", "eq": true}, {"fact": "overtime_holiday_hours", "op": ">", "value": 0}]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按150%/200%/300%标准支付加班费", "symbol": "O(employer, PayOvertimePremium)"},
+      "breach": {"any": [
+        {"fact": "overtime_paid_correctly", "eq": true},
+        {"all": [
+          {"fact": "weekend_overtime_compensated", "eq": true},
+          {"not": {"any": [
+            {"fact": "overtime_workday_hours", "op": ">", "value": 0},
+            {"fact": "overtime_holiday_hours", "op": ">", "value": 0}
+          ]}}
+        ]}
+      ]},
+      "remedy": "工作日延时按150%；休息日优先安排补休，不能补休的按200%；法定节假日加班必须按300%支付（不得以补休替代）。",
+      "risk_note": "举证要点：考勤记录、排班表、工作沟通记录。加班事实由劳动者初步举证，考勤由单位掌握的举证责任倒置。补休替代仅适用于休息日加班——工作日延时与法定节假日加班不得以补休替代货币支付。"
+    },
+    {
+      "id": "R19",
+      "source": "《劳动合同法》第十九条",
+      "text": "劳动合同期限三个月以上不满一年的，试用期不得超过一个月；一年以上不满三年的，试用期不得超过二个月；三年以上固定期限和无固定期限的劳动合同，试用期不得超过六个月。同一用人单位与同一劳动者只能约定一次试用期。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "probation_agreed", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "试用期时长不超过法定上限且仅约定一次", "symbol": "O(employer, ProbationWithinCap)"},
+      "breach": {"not": {"any": [
+        {"all": [{"fact": "contract_duration_months", "op": ">=", "value": 3}, {"fact": "contract_duration_months", "op": "<", "value": 12}, {"fact": "probation_months", "op": ">", "value": 1}]},
+        {"all": [{"fact": "contract_duration_months", "op": ">=", "value": 12}, {"fact": "contract_duration_months", "op": "<", "value": 36}, {"fact": "probation_months", "op": ">", "value": 2}]},
+        {"all": [{"fact": "contract_duration_months", "op": ">=", "value": 36}, {"fact": "probation_months", "op": ">", "value": 6}]},
+        {"all": [{"fact": "contract_duration_months", "eq": 0}, {"fact": "probation_months", "op": ">", "value": 6}]},
+        {"all": [{"fact": "contract_duration_months", "op": ">", "value": 0}, {"fact": "contract_duration_months", "op": "<", "value": 3}]},
+        {"fact": "probation_only_once", "eq": false}
+      ]}},
+      "remedy": "超过法定上限的试用期已经履行的，按第八十三条可主张以转正工资为标准按超期期间支付赔偿金（见 R83）。",
+      "risk_note": "仅以完成一定工作任务为期限或期限不满三个月的合同，不得约定试用期（约定本身违法）；无固定期限合同试用期上限为六个月。本条与 R83 联动：本条判约定违法，R83 承接已履行部分的赔偿。"
+    },
+    {
+      "id": "R20",
+      "source": "《劳动合同法》第二十条",
+      "text": "劳动者在试用期的工资不得低于本单位相同岗位最低档工资或者劳动合同约定工资的百分之八十，并不得低于用人单位所在地的最低工资标准。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "probation_agreed", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "试用期工资不低于法定下限", "symbol": "O(employer, ProbationWageFloor)"},
+      "breach": {"fact": "probation_wage_compliant", "eq": true},
+      "remedy": "可主张补足差额；拖欠工资的事实亦可叠加第三十八条解除权。",
+      "risk_note": "需对比'相同岗位最低档工资'与'约定工资80%'两值中的较高者，且均不得低于当地最低工资标准。"
+    },
+    {
+      "id": "R21",
+      "source": "《劳动合同法》第二十一条",
+      "text": "在试用期中，除劳动者有本法第三十九条和第四十条第一项、第二项规定的情形外，用人单位不得解除劳动合同。用人单位在试用期解除劳动合同的，应当向劳动者说明理由。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "probation_agreed", "eq": true},
+        {"fact": "terminated_by_employer", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "试用期解除须说明理由并符合第三十九条/第四十条第一二项情形", "symbol": "O(employer, StateGroundOnProbationRescission)"},
+      "breach": {"all": [
+        {"fact": "probation_termination_reason_stated", "eq": true},
+        {"fact": "probation_ground_legal", "eq": true}
+      ]},
+      "remedy": "试用期解除无合法事由或未说明理由的，构成违法解除，可依第八十七条主张二倍经济补偿的赔偿金。",
+      "risk_note": "双要件独立审查：①须向劳动者说明理由；②须实际存在第三十九条或第四十条第一、二项情形——仅有说明而无法定事由仍属违法解除（'不符合录用条件'须单位举证：录用条件事先明示且考核在试用期内完成）。"
+    },
+    {
+      "id": "R42",
+      "source": "《劳动合同法》第四十二条",
+      "text": "女职工在孕期、产期、哺乳期，患病或非因工负伤在规定医疗期内，工伤丧失或部分丧失劳动能力等情形，用人单位不得依照第四十条、第四十一条的规定解除劳动合同。（节选形式化）",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"fact": "worker_special_protection", "eq": true},
+        {"any": [
+          {"fact": "ground_40_with_procedure", "eq": true},
+          {"fact": "ground_layoff_41_procedure", "eq": true}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "依第四十条/第四十一条解除劳动合同", "symbol": "F(employer, Rescind40or41)"},
+      "remedy": "违法解除可主张继续履行合同，或依第八十七条主张二倍经济补偿的赔偿金（后果由 R87-2 承接）。",
+      "risk_note": "第三十九条（严重违纪等过失性辞退）不受第四十二条限制，仍可合法解除。"
+    },
+    {
+      "id": "R87",
+      "source": "《劳动合同法》第八十七条",
+      "text": "用人单位违反本法规定解除或者终止劳动合同的，应当依照本法第四十七条规定的经济补偿标准的二倍向劳动者支付赔偿金。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"fact": "ground_severe_misconduct_39", "eq": false},
+        {"fact": "ground_40_with_procedure", "eq": false},
+        {"fact": "ground_layoff_41_procedure", "eq": false},
+        {"fact": "mutual_agreement_employer_proposed", "eq": false},
+        {"fact": "contract_expired_termination", "eq": false}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按经济补偿标准二倍支付违法解除赔偿金", "symbol": "O(employer, Pay2xCompensation)"},
+      "breach": {"fact": "compensation_2n_paid", "eq": true},
+      "remedy": "可申请劳动仲裁主张二倍赔偿金（2N）；或主张继续履行劳动合同。",
+      "risk_note": "赔偿金与经济补偿不可同时主张；赔偿金基数按解除前十二个月平均应得工资（含奖金、津贴）计算。"
+    },
+    {
+      "id": "R46",
+      "source": "《劳动合同法》第四十六条、第四十七条",
+      "text": "劳动者依第三十八条解除、用人单位提出协商一致解除、用人单位依第四十条/第四十一条解除、合同期满终止（单位不维持或降低条件续订除外）等情形，用人单位应当支付经济补偿。经济补偿按劳动者在本单位工作年限，每满一年支付一个月工资；六个月以上不满一年的按一年计算；不满六个月的支付半个月工资。",
+      "category": "obligation",
+      "trigger": {"any": [
+        {"all": [{"fact": "worker_rescinded_38", "eq": true}]},
+        {"all": [{"fact": "mutual_agreement_employer_proposed", "eq": true}]},
+        {"all": [{"fact": "ground_40_with_procedure", "eq": true}]},
+        {"all": [{"fact": "ground_layoff_41_procedure", "eq": true}]},
+        {"all": [{"fact": "contract_expired_termination", "eq": true}, {"fact": "employer_renewed_same_or_better", "eq": false}]},
+        {"all": [
+          {"fact": "worker_refused_contract", "eq": true},
+          {"fact": "employer_written_termination_notice", "eq": true},
+          {"fact": "months_employed", "op": ">", "value": 1}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按工作年限支付经济补偿（N）", "symbol": "O(employer, PaySeverance)"},
+      "breach": {"fact": "severance_paid", "eq": true},
+      "remedy": "计算公式：N = 工作年限对应月数的解除前十二个月平均应得工资；六个月以上不满一年按一年，不满六个月按半个月。",
+      "risk_note": "第四十六条与第八十七条不可叠加：合法解除付N，违法解除付2N。第一分支要求劳动者已实际依第三十八条行使解除权（worker_rescinded_38）——仅存在拖欠/未缴事实而未解除的，不产生经济补偿义务（38条解除权与46条补偿义务分别成立）。末位分支为《实施条例》第六条衔接：用工超一个月后因劳动者拒签而书面通知终止的，二倍工资虽被例外推翻（X82-1），仍须按实际工作时间支付经济补偿。"
+    },
+    {
+      "id": "R24",
+      "source": "《劳动合同法》第二十三条、第二十四条",
+      "text": "对负有保密义务的劳动者，用人单位可以在劳动合同或保密协议中约定竞业限制条款，并约定在解除或终止劳动合同后按月给予经济补偿。竞业限制期限不得超过二年。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "noncompete_clause", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "竞业限制期限不超过二年且离职后按月支付经济补偿", "symbol": "O(employer, NoncompeteCompliance)"},
+      "breach": {"not": {"any": [
+        {"fact": "noncompete_months", "op": ">", "value": 24},
+        {"fact": "noncompete_compensation_paid", "eq": false}
+      ]}},
+      "remedy": "未按月支付补偿满三个月的，劳动者可请求解除竞业限制约定；期限超二年部分无效。",
+      "risk_note": "竞业限制仅适用于高级管理人员、高级技术人员和其他负有保密义务的人员（第二十四条第一款）。"
+    },
+    {
+      "id": "R39",
+      "source": "《劳动合同法》第三十九条",
+      "text": "劳动者在试用期间被证明不符合录用条件，或严重违反用人单位规章制度、严重失职营私舞弊给用人单位造成重大损害、被依法追究刑事责任等的，用人单位可以解除劳动合同。（节选形式化）",
+      "category": "permission",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"fact": "ground_severe_misconduct_39", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "PERMISSION", "bearer": "用人单位", "act": "过失性辞退（无需提前通知、无需支付经济补偿）", "symbol": "P(employer, RescindForCause)"},
+      "consequence_note": "依第三十九条解除不衔接第四十六条，无需支付经济补偿（N）。",
+      "remedy": "劳动者认为解除依据不实的，可申请仲裁主张违法解除赔偿金。",
+      "risk_note": "以'严重违纪'解除的举证责任在用人单位：规章制度须经民主程序制定并已向劳动者公示，违纪证据须充分。举证不能即构成违法解除（第八十七条，2N）。"
+    },
+    {
+      "id": "R40",
+      "source": "《劳动合同法》第四十条",
+      "text": "劳动者患病或非因工负伤医疗期满后不能从事原工作也不能从事另行安排的工作，或不能胜任工作经培训或调整岗位仍不能胜任，或客观情况发生重大变化致合同无法履行经协商未能就变更达成协议的，用人单位提前三十日书面通知或额外支付一个月工资后，可以解除劳动合同。",
+      "category": "permission",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"fact": "ground_40_with_procedure", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "PERMISSION", "bearer": "用人单位", "act": "无过失性辞退（提前30日书面通知或支付代通知金）", "symbol": "P(employer, RescindWithNotice)"},
+      "consequence_note": "衔接第四十六条：应支付经济补偿（N）；未提前30日通知的另须支付代通知金（+1）。",
+      "remedy": "对'不能胜任'的认定要求单位先经培训或调岗程序，直接辞退属程序违法。",
+      "risk_note": "劳动者处于第四十二条特殊保护期的，不得依本条解除（见R42）。"
+    },
+    {
+      "id": "R50",
+      "source": "《劳动合同法》第五十条",
+      "text": "用人单位应当在解除或者终止劳动合同时出具解除或者终止劳动合同的证明，并在十五日内为劳动者办理档案和社会保险关系转移手续。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "worker_separated", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "出具解除/终止证明并在15日内办理档案社保转移", "symbol": "O(employer, IssueSeparationCertificate)"},
+      "breach": {"fact": "separation_certificate_issued", "eq": true},
+      "remedy": "可要求单位补开证明；因拒绝出具造成损失（如无法办理失业登记、领取失业保险金）的，可主张赔偿。",
+      "risk_note": "此义务不以结清争议为前提，即使存在劳动争议也须先出具证明。"
+    },
+    {
+      "id": "R14",
+      "source": "《劳动合同法》第十四条第三款、《实施条例》第七条",
+      "text": "用人单位自用工之日起满一年不与劳动者订立书面劳动合同的，视为用人单位与劳动者已订立无固定期限劳动合同。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "months_employed", "op": ">=", "value": 12},
+        {"fact": "written_contract_signed", "eq": false}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按无固定期限劳动合同对待劳动者", "symbol": "O(employer, TreatAsIndefiniteTerm)"},
+      "breach": {"fact": "indefinite_contract_honored", "eq": true},
+      "remedy": "满一年后二倍工资一般停止计算（自用工之日起满一年的前一日为上限），但无固定期限合同关系自动成立；单位再行辞退的按解除规则判定。",
+      "risk_note": "各地对二倍工资计算截止点口径存在差异，本条采用主流口径：算至满一年的前一日。"
+    },
+    {
+      "id": "R82-2",
+      "source": "《劳动合同法》第八十二条第二款（合同期满后继续用工未续订，参照适用）",
+      "text": "劳动合同期满后劳动者仍在原用人单位工作，用人单位未表示异议并继续用工超过一个月未续订书面合同的，应当向劳动者每月支付二倍的工资（参照第八十二条第一款处理）。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "continued_after_expiry", "eq": true},
+        {"fact": "contract_renewed", "eq": false},
+        {"fact": "months_after_expiry", "op": ">", "value": 1}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "期满留用期间每月支付二倍工资", "symbol": "O(employer, PayDoubleWageOnRenewal)"},
+      "breach": {"fact": "double_wage_paid", "eq": true},
+      "remedy": "可主张自期满后满一个月的次日起的二倍工资差额（各地起算口径略有差异）。",
+      "risk_note": "本规则为参照适用规则，部分地区对期满留用是否适用二倍工资存在不同裁判口径，对拍时注意地域差异。"
+    },
+    {
+      "id": "R22",
+      "source": "《劳动合同法》第二十二条",
+      "text": "用人单位为劳动者提供专项培训费用，对其进行专业技术培训的，可以约定服务期。劳动者违反服务期约定的，应当按照约定向用人单位支付违约金。违约金数额不得超过用人单位提供的培训费用，且不得超过服务期尚未履行部分所应分摊的培训费用。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "special_training_agreed", "eq": true},
+        {"fact": "penalty_on_worker_agreed", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "服务期违约金不超过培训费用及未履行部分分摊额", "symbol": "O(employer, CapServicePenalty)"},
+      "breach": {"fact": "service_penalty_compliant", "eq": true},
+      "remedy": "违约金超出法定上限的部分无效，劳动者无须支付；已支付的超出部分可主张返还。",
+      "risk_note": "分摊公式：违约金上限 = 培训费用 ×（服务期总月数 − 已履行月数）÷ 服务期总月数。引擎对分摊额以事实字段（service_penalty_compliant）断言，具体数额须人工代入公式核对。"
+    },
+    {
+      "id": "R25",
+      "source": "《劳动合同法》第二十五条",
+      "text": "除本法第二十二条和第二十三条规定的情形外，用人单位不得与劳动者约定由劳动者承担违约金。",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "penalty_on_worker_agreed", "eq": true},
+        {"not": {"any": [
+          {"fact": "penalty_context_service_period", "eq": true},
+          {"fact": "penalty_context_noncompete", "eq": true}
+        ]}}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "与劳动者约定由劳动者承担违约金（服务期、竞业限制情形除外）", "symbol": "F(employer, AgreeWorkerPenalty)"},
+      "remedy": "违约金条款无效，劳动者无须支付；已支付的违约金可主张返还。",
+      "risk_note": "触发本条时系统已排除服务期与竞业限制两种合法情形；若违约金情形归属不明，引擎输出'证据不足'并追问归属，而非硬性判定违法。"
+    },
+    {
+      "id": "R41",
+      "source": "《劳动合同法》第四十一条",
+      "text": "需要裁减人员二十人以上或者裁减不足二十人但占企业职工总数百分之十以上的，用人单位提前三十日向工会或者全体职工说明情况、听取意见后，裁减人员方案经向劳动行政部门报告，可以裁减人员。（节选形式化）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"any": [
+          {"fact": "layoff_headcount", "op": ">=", "value": 20},
+          {"fact": "layoff_ratio_over_10pct", "eq": true}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "履行第四十一条法定裁员程序（提前30日说明并听取意见 + 向劳动行政部门报告）", "symbol": "O(employer, FollowLayoffProcedure)"},
+      "breach": {"all": [
+        {"fact": "layoff_explained_30days_advance", "eq": true},
+        {"fact": "layoff_reported_to_authority", "eq": true}
+      ]},
+      "remedy": "裁员程序不合法构成违法解除，可依第八十七条主张二倍经济补偿的赔偿金，或主张继续履行劳动合同。",
+      "risk_note": "程序要件缺失时，即使存在实体裁员事由（如生产经营严重困难），仍构成违法解除——程序与实体要件独立审查。"
+    },
+    {
+      "id": "R85",
+      "source": "《劳动合同法》第八十五条",
+      "text": "未按照劳动合同的约定或者国家规定及时足额支付劳动者劳动报酬、低于当地最低工资标准支付、安排加班不支付加班费、解除终止未依法支付经济补偿的，由劳动行政部门责令限期支付；逾期不支付的，责令按应付金额百分之五十以上百分之一百以下的标准向劳动者加付赔偿金。（节选形式化）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "authority_ordered_payment", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "在责令期限内支付，逾期则按应付金额50%-100%加付赔偿金", "symbol": "O(employer, PayAfterOrderOrPremium)"},
+      "breach": {"not": {"all": [
+        {"fact": "order_deadline_passed", "eq": true},
+        {"fact": "arrearage_still_unpaid", "eq": true}
+      ]}},
+      "remedy": "期限届满仍未支付的，可主张应付金额50%-100%的加付赔偿金；本金部分亦可直接申请劳动仲裁。",
+      "risk_note": "加付赔偿金以'经劳动行政部门责令限期支付而逾期未付'为前置程序；未经责令直接仲裁的，主流裁判口径仅支持本金，不支持加付部分。"
+    },
+    {
+      "id": "R26",
+      "source": "《劳动合同法》第二十六条、第二十八条",
+      "text": "以欺诈、胁迫的手段或者乘人之危，使对方在违背真实意思的情况下订立或者变更劳动合同的；用人单位免除自己的法定责任、排除劳动者权利的——劳动合同无效或者部分无效。劳动合同被确认无效，劳动者已付出劳动的，用人单位应当向劳动者支付劳动报酬。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "contract_void_fraud_or_exclusion", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "对合同无效期间已付出的劳动支付劳动报酬", "symbol": "O(employer, PayWageDespiteVoidContract)"},
+      "breach": {"fact": "wages_paid_for_void_contract", "eq": true},
+      "remedy": "报酬数额参照本单位相同或者相近岗位劳动者的工资确定；因合同无效给对方造成损害的，有过错的一方应当承担赔偿责任（第八十六条）。",
+      "risk_note": "合同无效不影响劳动对价请求权——'劳动已给付、不得返还'原理，报酬请求权独立于合同效力而存在。"
+    },
+    {
+      "id": "R5-AL",
+      "source": "《职工带薪年休假条例》第三条、第五条，《企业职工带薪年休假实施办法》第十条",
+      "text": "职工累计工作已满1年不满10年的，年休假5天；已满10年不满20年的，年休假10天；已满20年的，年休假15天。单位确因工作需要不能安排职工休年休假的，经职工本人同意，可以不安排职工休年休假；对职工应休未休的年休假天数，单位应当按照该职工日工资收入的300%支付年休假工资报酬。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "cumulative_work_years", "op": ">=", "value": 1},
+        {"fact": "annual_leave_unused_days", "op": ">", "value": 0}
+      ]},
+      "exceptions": [
+        {
+          "id": "X5AL-1",
+          "source": "《企业职工带薪年休假实施办法》第十条",
+          "desc": "因本人原因且书面提出不休年休假的",
+          "all": [
+            {"fact": "annual_leave_worker_waived", "eq": true}
+          ]
+        }
+      ],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "对应休未休年休假按日工资300%支付报酬", "symbol": "O(employer, PayUnusedLeavePremium)"},
+      "breach": {"fact": "annual_leave_300_paid", "eq": true},
+      "remedy": "可主张未休天数日工资300%的报酬（其中100%为正常工资，另200%为未休补偿）；注意仲裁时效按年度起算存在各地口径差异。",
+      "risk_note": "300%中含正常工作期间工资，差额部分为200%；已安排补休或劳动者书面放弃的，无须支付。"
+    },
+    {
+      "id": "R87-2",
+      "source": "《劳动合同法》第四十二条、第八十七条（跨规则效果传导）",
+      "text": "用人单位违反第四十二条禁止性规定，依第四十条、第四十一条解除处于特殊保护期劳动者的，其解除行为违法，应当依照第八十七条按经济补偿标准的二倍支付赔偿金。（承接 R42 判定违法后的法律后果）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "terminated_by_employer", "eq": true},
+        {"fact": "worker_special_protection", "eq": true},
+        {"any": [
+          {"fact": "ground_40_with_procedure", "eq": true},
+          {"fact": "ground_layoff_41_procedure", "eq": true}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按经济补偿标准二倍支付赔偿金（违反42条解除）", "symbol": "O(employer, Pay2xForProtectedRescission)"},
+      "breach": {"fact": "compensation_2n_paid", "eq": true},
+      "remedy": "可主张继续履行劳动合同，或依第八十七条主张二倍经济补偿的赔偿金（2N）。",
+      "risk_note": "本规则与 R87 互补：R87 处理'无任何合法事由'的解除，本规则处理'形式上有40/41条事由但撞上42条保护期'的解除——两条路径共同覆盖第八十七条的全部触发面。第三十九条过失性辞退不受42条限制，仍属合法解除。"
+    },
+    {
+      "id": "R83",
+      "source": "《劳动合同法》第八十三条",
+      "text": "用人单位违反本法规定与劳动者约定试用期的，由劳动行政部门责令改正；违法约定的试用期已经履行的，由用人单位以劳动者试用期满月工资为标准，按已经履行的超过法定试用期的期间向劳动者支付赔偿金。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "probation_agreed", "eq": true},
+        {"fact": "probation_exceeded_cap", "eq": true},
+        {"fact": "probation_excess_served", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "以试用期满月工资为标准按超期期间支付赔偿金", "symbol": "O(employer, PayExcessProbationCompensation)"},
+      "breach": {"fact": "probation_excess_compensation_paid", "eq": true},
+      "remedy": "赔偿金标准为'试用期满月工资'，按已履行的超期期间计算；可与 R19 的责令改正并行主张。",
+      "risk_note": "本规则承接 R19：R19 判定'约定超上限'违法，R83 承接'已履行部分'的赔偿后果——约定违法与履行赔偿两个环节独立审查。"
+    },
+    {
+      "id": "R47-2",
+      "source": "《劳动合同法》第四十七条第二款",
+      "text": "劳动者月工资高于用人单位所在直辖市、设区的市级人民政府公布的本地区上年度职工月平均工资三倍的，向其支付经济补偿的标准按职工月平均工资三倍的数额支付，向其支付经济补偿的年限最高不超过十二年。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "wage_above_3x_social_avg", "eq": true},
+        {"fact": "severance_obligation_exists", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "经济补偿基数按社平三倍封顶且年限不超过十二年", "symbol": "O(employer, ApplySeveranceCap)"},
+      "breach": {"fact": "severance_cap_applied", "eq": true},
+      "remedy": "封顶规则同时是上限与义务边界：基数按社平三倍、年限封顶12年；未满12年的按实际年限计算。",
+      "risk_note": "对高收入劳动者，未按封顶基数计算导致少付的按差额追偿；本规则须与 R46（是否应付N）联用——severance_obligation_exists 为 R46 各触发情形的人工归纳字段。"
+    },
+    {
+      "id": "R9",
+      "source": "《劳动合同法》第九条、第八十四条",
+      "text": "用人单位招用劳动者，不得扣押劳动者的居民身份证和其他证件，不得要求劳动者提供担保或者以其他名义向劳动者收取财物。",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"any": [
+          {"fact": "id_card_withheld", "eq": true},
+          {"fact": "deposit_or_property_collected", "eq": true}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "扣押证件或收取财物/要求担保", "symbol": "F(employer, WithholdIDorCollectDeposit)"},
+      "remedy": "依第八十四条：扣押证件的由劳动行政部门责令限期退还并处罚款；收取财物的责令限期退还，并以每人五百元以上二千元以下的标准处以罚款。",
+      "risk_note": "入职环节高频违法点：'押金''服装费''培训保证金'等变相收取财物均属禁止范围。"
+    },
+    {
+      "id": "R14-2",
+      "source": "《劳动合同法》第十四条第二款",
+      "text": "用人单位与劳动者协商一致，可以订立无固定期限劳动合同。有下列情形之一，劳动者提出或者同意续订、订立劳动合同的，除劳动者提出订立固定期限劳动合同外，应当订立无固定期限劳动合同：（一）劳动者在该用人单位连续工作满十年的；（三）连续订立二次固定期限劳动合同，且劳动者没有本法第三十九条和第四十条第一项、第二项规定的情形，续订劳动合同的。（节选形式化）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"any": [
+          {"fact": "continuous_work_years", "op": ">=", "value": 10},
+          {"fact": "renewed_twice_fixed_term", "eq": true}
+        ]}
+      ]},
+      "exceptions": [
+        {
+          "id": "X14-2-1",
+          "source": "《劳动合同法》第十四条第二款但书",
+          "desc": "劳动者提出订立固定期限劳动合同（但书位于引语，按字面及主流裁判口径适用于第二款全部情形，含连续工作满十年路径；单位援引但书负举证责任）",
+          "all": [
+            {"fact": "worker_requests_fixed_term", "eq": true}
+          ]
+        }
+      ],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "依法订立无固定期限劳动合同", "symbol": "O(employer, GrantIndefiniteTerm)"},
+      "breach": {"fact": "indefinite_contract_granted", "eq": true},
+      "remedy": "应订无固定期限合同而拒订的，可主张自应订立之日起的二倍工资（参照第八十二条第二款口径，各地存在差异）。",
+      "risk_note": "但书适用于第二款全部三项情形（含满十年）——单位主张'固定期限系劳动者提出'的，负举证责任（参见龙岩中院裁判口径：无证据证明系劳动者提出的，订立固定期限合同即违反本条）。劳动者意向未知的，引擎输出待查证而非径行判定。"
+    },
+    {
+      "id": "R45",
+      "source": "《劳动合同法》第四十二条、第四十五条",
+      "text": "劳动合同期满，有本法第四十二条规定情形之一的，劳动合同应当续延至相应的情形消失时终止。（职业病、工伤丧失劳动能力职工另有特别规定，节选形式化）",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "contract_expired_termination", "eq": true},
+        {"fact": "worker_special_protection", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "在特殊保护期内因合同期满终止劳动合同", "symbol": "F(employer, TerminateOnExpiryInProtection)"},
+      "remedy": "合同应顺延至情形消失（三期结束、医疗期满等）；违法终止可主张二倍赔偿金（后果由 R87-3 承接），或要求继续履行。",
+      "risk_note": "42条只禁止'依40/41条解除'，期满终止由45条的续延义务独立规制——两条路径覆盖保护期的全部出口（39条过失性辞退仍可解除）。"
+    },
+    {
+      "id": "R87-3",
+      "source": "《劳动合同法》第四十五条、第八十七条（跨规则效果传导）",
+      "text": "违反第四十五条续延义务，在特殊保护期内因期满终止劳动合同的，属违法终止，应当依照第八十七条按经济补偿标准的二倍支付赔偿金。（承接 R45 判定违法后的法律后果）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "contract_expired_termination", "eq": true},
+        {"fact": "worker_special_protection", "eq": true}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "按经济补偿标准二倍支付违法终止赔偿金", "symbol": "O(employer, Pay2xForIllegalExpiry)"},
+      "breach": {"fact": "compensation_2n_paid", "eq": true},
+      "remedy": "可主张继续履行（顺延至情形消失），或主张二倍赔偿金（2N）；二者择一。",
+      "risk_note": "注意合法期满终止本身也可能产生 N（R46 第五项，单位不维持条件续订时）——违法终止付 2N 与之不可叠加，就高执行。"
+    },
+    {
+      "id": "R58-SI",
+      "source": "《社会保险法》第五十八条、第六十三条，《劳动法》第七十二条",
+      "text": "用人单位应当自用工之日起三十日内为其职工向社会保险经办机构申请办理社会保险登记，并依法缴纳社会保险费。未按时足额缴纳社会保险费的，由社会保险费征收机构责令限期缴纳或者补足。",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "months_employed", "op": ">=", "value": 1}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "自用工之日起30日内办理社保登记并依法缴费", "symbol": "O(employer, RegisterAndPaySocialInsurance)"},
+      "breach": {"fact": "social_insurance_paid", "eq": true},
+      "remedy": "可要求补缴并向社保征收机构投诉（责令限期缴纳，逾期可加收滞纳金）；未缴社保亦构成38条被迫解除事由（R38），解除后衔接经济补偿（R46）。",
+      "risk_note": "社保缴纳为法定强制义务：'自愿放弃社保'承诺与'社保补贴折现'约定均无效，事后劳动者仍可主张补缴并援引38条。"
+    },
+    {
+      "id": "R31",
+      "source": "《劳动法》第四十一条",
+      "text": "用人单位由于生产经营需要，经与工会和劳动者协商后可以延长工作时间，一般每日不得超过一小时；因特殊原因需要延长工作时间的，在保障劳动者身体健康的条件下延长工作时间每日不得超过三小时，但是每月不得超过三十六小时。",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "monthly_overtime_hours", "op": ">", "value": 36}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "安排加班超过每月三十六小时上限", "symbol": "F(employer, ExceedOvertimeCap)"},
+      "remedy": "可拒绝超时加班并向劳动监察投诉（第九十条：责令改正、警告、可处罚款）；超时加班的事实同时支持加班费主张（R44）。",
+      "risk_note": "36小时/月为强制上限：即便足额支付了加班费，超上限安排仍构成程序违法——支付加班费不能治愈时长违法。"
+    },
+    {
+      "id": "R70",
+      "source": "《劳动合同法》第六十八条、第七十二条",
+      "text": "非全日制用工，是指以小时计酬为主，劳动者在同一用人单位一般平均每日工作时间不超过四小时，每周工作时间累计不超过二十四小时的用工形式。非全日制用工劳动报酬结算支付周期最长不得超过十五日。",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "part_time_employed", "eq": true},
+        {"any": [
+          {"fact": "part_time_daily_hours", "op": ">", "value": 4},
+          {"fact": "part_time_weekly_hours", "op": ">", "value": 24},
+          {"fact": "part_time_paid_within_15days", "eq": false}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "非全日制用工超过工时上限或结算周期超过15日", "symbol": "F(employer, ViolatePartTimeRules)"},
+      "remedy": "长期超限的'名为非全日制、实为全日制'用工，可按全日制口径主张签订书面合同、经济补偿等权益；结算超期的衔接拖欠报酬（R30）。",
+      "risk_note": "非全日制虽不得约定试用期、双方可随时终止且无经济补偿，但工时超限是事实劳动关系按全日制认定的重要依据；口头约定仅限非全日制，全日制必须书面。"
+    },
+    {
+      "id": "R16-P",
+      "source": "《工资支付暂行规定》第十六条",
+      "text": "因劳动者本人原因给用人单位造成经济损失的，用人单位可按照劳动合同的约定要求其赔偿经济损失。经济损失的赔偿，可从劳动者本人的工资中扣除。但每月扣除的部分不得超过劳动者当月工资的20%。若扣除后的剩余工资部分低于当地月最低工资标准，则按最低工资标准支付。",
+      "category": "prohibition",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"fact": "wage_deduction_for_damage", "eq": true},
+        {"any": [
+          {"fact": "deduction_over_20pct", "eq": true},
+          {"fact": "deduction_below_min_wage", "eq": true}
+        ]}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "FORBIDDEN", "bearer": "用人单位", "act": "单月扣除超过工资20%或扣除后低于最低工资", "symbol": "F(employer, ExcessiveWageDeduction)"},
+      "remedy": "超额扣除部分可主张返还；无损失依据、无合同约定的'罚款'式克扣，构成未及时足额支付劳动报酬（衔接 R30 与 38 条解除权）。",
+      "risk_note": "扣除赔偿须同时满足：合同有约定 + 劳动者本人原因 + 实际损失存在；三者缺一即为违法克扣。"
+    },
+    {
+      "id": "R82-3",
+      "source": "《劳动合同法》第八十二条第二款（应订无固定期限而未订，跨规则效果传导）",
+      "text": "用人单位违反本法规定不与劳动者订立无固定期限劳动合同的，自应当订立无固定期限劳动合同之日起向劳动者每月支付二倍的工资。（承接 R14-2 判定违法后的法律后果）",
+      "category": "obligation",
+      "trigger": {"all": [
+        {"fact": "employment_exists", "eq": true},
+        {"any": [
+          {"fact": "continuous_work_years", "op": ">=", "value": 10},
+          {"fact": "renewed_twice_fixed_term", "eq": true}
+        ]},
+        {"fact": "indefinite_contract_granted", "eq": false},
+        {"fact": "worker_requests_fixed_term", "eq": false}
+      ]},
+      "exceptions": [],
+      "deontic": {"operator": "OBLIGATION", "bearer": "用人单位", "act": "自应订立之日起每月支付二倍工资", "symbol": "O(employer, PayDoubleWageNoIndefinite)"},
+      "breach": {"fact": "double_wage_paid", "eq": true},
+      "remedy": "可主张自应订立无固定期限合同之日起的二倍工资差额，并要求补订无固定期限合同（义务本身见 R14-2）。",
+      "risk_note": "本规则是 R14-2 的后果传导，二者联动判定：R14-2 确认'应订未订'违法，R82-3 量化'每月二倍'的金钱后果。但书（劳动者主动要求固定期限）适用于两款全部情形——劳动者意向未知时引擎输出证据不足并追问。起算点与计算区间各地口径存在差异。"
+    }
+  ]
+}
