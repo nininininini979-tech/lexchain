@@ -233,8 +233,8 @@ function uniqueUnknown(atoms) {
 }
 
 /* ---------- 生成总报告 ---------- */
-function analyze(facts, ruleSet) {
-  const rs = loadRuleSet(ruleSet);
+function analyze(facts, ruleSetPath) {
+  const rs = loadRuleSet(ruleSetPath);
   const results = rs.rules.map(r => evalRule(r, facts, rs.descMap));
   const byStatus = {};
   for (const r of results) (byStatus[r.status] = byStatus[r.status] || []).push(r.id);

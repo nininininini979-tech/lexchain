@@ -3,7 +3,9 @@
 <head data-page-node-id="PsSZfXTPzSMomUiIqgMjRa">
 <meta charset="UTF-8" data-page-node-id="27FK0Gedcv9MTASuo3gnkz">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="isLUGIJhcwnBK06Z5FpobO">
-<title>LexChain 律链 · 法律形式化推理引擎</title>
+<meta name="lexchain-mode" content="static">
+<meta name="description" content="面向劳动者的劳动争议初步分析：整理欠薪、事实与证据，了解可选的求助路径。">
+<title>LexChain 律链 · 劳动争议初步分析</title>
 <style>
   :root {
     --bg: #0d1117; --panel: #161b22; --panel2: #1c2330; --border: #2d333b;
@@ -66,7 +68,7 @@
   .tri button.on-unk { background: rgba(139,148,158,.2); color: var(--muted); }
   .fact-row input[type=number] { width: 90px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 4px 8px; font-size: 12px; }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 0 20px; }
-  .hidden { display: none; }
+  .hidden, [hidden] { display: none !important; }
   .err { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.4); color: var(--red); border-radius: 8px; padding: 12px; font-size: 13px; margin-top: 12px; }
   .toggle-all { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
   /* ===== 理论基石：符号推演 ===== */
@@ -106,14 +108,125 @@
   .hoh th { background: #0a0e14; color: var(--accent); font-weight: 600; }
   .hoh td { color: var(--text); }
   .hoh .pair { color: var(--accent2); font-family: Menlo, monospace; }
+  .mode-tabs { display:flex; gap:8px; margin: 8px 0 16px; border-bottom:1px solid var(--border); padding-bottom:10px; }
+  .mode-tab { border:1px solid var(--border); background:transparent; color:var(--muted); border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer; }
+  .mode-tab.active { color:var(--text); border-color:var(--accent); background:rgba(79,143,247,.12); }
+  .worker-shell { background:linear-gradient(180deg,rgba(79,143,247,.08),rgba(22,27,34,.98) 24%); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:18px; }
+  .worker-shell h2 { font-size:20px; margin-bottom:6px; }
+  .worker-lead { color:var(--muted); font-size:13px; max-width:680px; }
+  .worker-meta { color:var(--muted); font-size:11px; margin-top:8px; }
+  .worker-progress { display:flex; gap:6px; margin:18px 0; }
+  .worker-progress span { height:4px; flex:1; border-radius:3px; background:var(--border); }
+  .worker-progress span.on { background:var(--accent); }
+  .issue-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:16px; }
+  .issue-choice { text-align:left; min-height:58px; border:1px solid var(--border); border-radius:9px; background:var(--panel2); color:var(--text); padding:12px 14px; cursor:pointer; font-size:13px; }
+  .issue-choice:hover,.issue-choice.selected { border-color:var(--accent); background:rgba(79,143,247,.1); }
+  .worker-form { margin-top:14px; }
+  .worker-form label { display:block; color:var(--muted); font-size:12px; margin:12px 0 5px; }
+  .worker-form input,.worker-form select,.worker-form textarea { width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:7px; padding:9px 10px; font:inherit; font-size:13px; }
+  .worker-form textarea { min-height:90px; resize:vertical; }
+  .worker-row-head,.worker-wage-row { display:grid; grid-template-columns:1.1fr 1fr 1fr auto; gap:7px; align-items:center; }
+  .worker-row-head { color:var(--muted); font-size:11px; margin-top:12px; }
+  .worker-wage-row { margin-top:7px; }
+  .worker-wage-row input { min-width:0; }
+  .icon-btn { width:34px; height:34px; padding:0; margin:0; border:1px solid var(--border); border-radius:7px; background:transparent; color:var(--muted); cursor:pointer; }
+  .worker-link { border:0; background:transparent; color:var(--accent); cursor:pointer; padding:8px 0; font-size:12px; }
+  .worker-evidence { display:grid; gap:8px; margin-top:12px; }
+  .evidence-row { display:grid; grid-template-columns:1fr 150px; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(45,51,59,.5); }
+  .evidence-row b { display:block; font-size:13px; font-weight:500; }
+  .evidence-row small { color:var(--muted); font-size:11px; }
+  .evidence-row select { margin:0; }
+  .redact-note { margin-top:12px; color:var(--amber); font-size:12px; padding:9px 10px; border-left:3px solid var(--amber); background:rgba(210,153,34,.08); }
+  .worker-actions { display:flex; justify-content:space-between; gap:10px; margin-top:18px; }
+  .worker-actions .btn { margin-top:0; }
+  .worker-opinion { margin-top:10px; }
+  .opinion-banner { border:1px solid rgba(63,185,80,.45); background:rgba(63,185,80,.08); border-radius:10px; padding:15px; }
+  .opinion-banner.warn { border-color:rgba(210,153,34,.5); background:rgba(210,153,34,.08); }
+  .opinion-banner.caution { border-color:rgba(210,153,34,.5); background:rgba(210,153,34,.06); }
+  .opinion-banner h3 { font-size:18px; margin-bottom:5px; }
+  .opinion-label { color:var(--muted); font-size:12px; }
+  .opinion-section { border-top:1px solid var(--border); padding-top:14px; margin-top:16px; }
+  .opinion-section h3 { font-size:14px; color:var(--accent); margin-bottom:8px; }
+  .opinion-section p,.opinion-section li { font-size:13px; color:var(--text); }
+  .opinion-section ul { margin-left:18px; }
+  .claim-card { display:flex; justify-content:space-between; gap:12px; border:1px solid var(--border); background:var(--panel2); border-radius:8px; padding:11px 12px; margin-top:8px; }
+  .claim-card strong { color:var(--green); white-space:nowrap; }
+  .formula { color:var(--accent2); font:12px Menlo,monospace; margin-top:4px; }
+  .action-list { display:grid; gap:8px; }
+  .action-item { display:grid; grid-template-columns:74px 1fr; gap:8px; padding:8px 0; border-bottom:1px solid rgba(45,51,59,.5); }
+  .action-item em { color:var(--amber); font-size:11px; font-style:normal; }
+  .action-item b { font-size:13px; }
+  .action-item p { color:var(--muted); margin-top:2px; }
+  .worker-disclaimer { color:var(--muted); font-size:11px; margin-top:15px; }
+  body.worker-mode .expert-badges { display:none; }
+  #expertSurface[hidden] .der-list li::before, #expertSurface[hidden] .nl-chain li::before { content:none; }
+  .worker-evidence select { width:100%; border:1px solid var(--border); background:var(--panel2); color:var(--text); border-radius:6px; padding:10px; font-family:inherit; font-size:13px; }
+  .worker-privacy { color:var(--muted); font-size:11px; margin:18px 0 0; }
+  .worker-wage-row label { margin:0; }
+  .worker-wage-row label span { display:none; }
+  .worker-wage-row .wage-month { grid-column:auto; }
+  .opinion-details { border-top:1px solid var(--border); padding-top:12px; margin-top:16px; }
+  .opinion-details summary { cursor:pointer; color:var(--accent); font-size:14px; }
+  .opinion-details .opinion-section { border:0; margin-top:8px; padding-top:4px; }
+  .action-item span { color:var(--amber); font-size:11px; }
+  .worker-progress { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin:20px 0 22px; border-bottom:1px solid var(--border); }
+  .worker-progress span { height:auto; border-radius:0; background:none; color:var(--muted); text-align:center; padding:0 4px 9px; font-size:12px; border-bottom:2px solid transparent; }
+  .worker-progress span.current { color:var(--text); border-color:var(--accent); }
+  .worker-progress span.complete { color:var(--green); border-color:rgba(63,185,80,.6); }
+  .issue-choice { display:flex; flex-direction:column; justify-content:center; gap:2px; }
+  .issue-choice small { color:var(--muted); font-size:11px; }
+  .field-hint { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+  .worker-form .form-subhead { font-size:13px; margin-top:18px; }
+  .worker-wage-head,.worker-wage-row { display:grid; grid-template-columns:minmax(110px,1.1fr) minmax(100px,1fr) minmax(100px,1fr) 36px; gap:8px; align-items:center; }
+  .worker-wage-head { color:var(--muted); font-size:11px; margin-top:12px; }
+  .worker-wage-row { margin-top:7px; }
+  .worker-wage-row input { min-width:0; }
+  .evidence-row { grid-template-columns:minmax(0,1fr) minmax(130px,150px); }
+  .evidence-row small { display:block; }
+  .opinion-banner { border-radius:6px; }
+  .claim-line { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); }
+  .claim-line small { display:block; color:var(--muted); font-size:11px; margin-top:4px; }
+  .claim-line .formula { color:var(--accent2); font-family:Menlo,monospace; }
+  .claim-line strong { color:#78d49a; white-space:nowrap; }
+  .rule-caveat { display:block; margin-top:4px; color:var(--muted); font-size:11px; }
+  .opinion-section h4 { margin-top:12px; font-size:12px; color:var(--amber); }
+  .opinion-section li { margin:7px 0; }
+  .opinion-section li small { display:block; color:var(--muted); font-size:11px; }
+  .coverage-note { color:var(--amber); font-size:11px; margin-top:10px; }
+  .result-actions { display:flex; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border); margin-top:16px; padding-top:13px; }
+  .expert-notice { color:var(--amber); font-size:12px; margin:8px 0 14px; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .worker-shell,.card,.rule-card,.deo-card,.verdict { border-radius:8px; }
+  .mode-tab { font-size:13px; }
+  @media (max-width:560px) {
+    .worker-shell { padding:16px; }
+    .issue-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .issue-choice:first-child { grid-column:1/-1; }
+    .issue-choice { padding:12px 10px; min-height:76px; font-size:13px; }
+    .worker-row-head { display:none; }
+    .worker-wage-head { display:none; }
+    .worker-wage-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px; }
+    .worker-wage-row .wage-month { grid-column:1 / -1; }
+    .worker-wage-row label span { display:block; font-size:11px; color:var(--muted); margin:2px 0 3px; }
+    .worker-wage-row { border-top:1px solid var(--border); margin-top:12px; padding-top:8px; }
+    .evidence-row { grid-template-columns:1fr; gap:5px; }
+    .evidence-row select { max-width:100%; }
+    .claim-card { display:block; }
+    .claim-card strong { display:block; margin-top:5px; }
+    .claim-line { grid-template-columns:1fr; }
+    .claim-line strong { white-space:normal; }
+    .worker-progress span { font-size:11px; }
+    header h1 { font-size:24px; }
+    .mode-tab { flex:1; }
+  }
 </style>
 </head>
-<body data-page-node-id="8iEx9HB4UejlXtGTknqISz">
+<body class="worker-mode" data-page-node-id="8iEx9HB4UejlXtGTknqISz">
 <div class="wrap" data-page-node-id="PXcmVNnKZJIlE6Lpy5dcK5">
   <header data-page-node-id="AC82jdaXDvnkETZtqz8NHw">
     <h1 data-page-node-id="3eas1RuthiZibGDweAJNau"><span data-page-node-id="trlMmMA6we5F9K7dM6GMHF">LexChain 律链</span></h1>
-    <div class="sub" data-page-node-id="rGAv9Cwy0HodwI0c28MZ6c">分析哲学形式化法律推理引擎 · v0.1 劳动纠纷验证集</div>
-    <div style="margin-top:8px" data-page-node-id="2qCRTweAUWBQGh2IgwYf9Q">
+    <div class="sub" data-page-node-id="rGAv9Cwy0HodwI0c28MZ6c">劳动争议初步法律分析 · 事实、证据与行动</div>
+    <div class="expert-badges" style="margin-top:8px" data-page-node-id="2qCRTweAUWBQGh2IgwYf9Q">
       <span class="badge" data-page-node-id="Y1KVa1GT4QhDN67C2BL3Ln">道义逻辑 O/F/P</span>
       <span class="badge" data-page-node-id="mIiJxzrPqOlq3Sv80LHay0">三值判定 T/F/U</span>
       <span class="badge" data-page-node-id="aGzgwrXjpfKVTA89egM71H">可废止推理</span>
@@ -121,12 +234,35 @@
     </div>
   </header>
 
+  <div class="mode-tabs" role="tablist" aria-label="工作模式">
+    <button id="workerModeBtn" class="mode-tab active" role="tab" aria-selected="true" aria-controls="workerSurface">工人求助</button>
+    <button id="expertModeBtn" class="mode-tab" role="tab" aria-selected="false" aria-controls="expertSurface">专业审阅</button>
+  </div>
+
+  <section id="workerSurface" class="worker-shell" aria-label="工人求助">
+    <h2>先理清事实，再看如何维权</h2>
+    <p class="worker-lead">从你遇到的问题开始，整理事实、核对证据，了解可以采取的下一步。</p>
+    <div id="workerMeta" class="worker-meta">中华人民共和国大陆地区 · 规则库加载中</div>
+    <div id="workerProgress" class="worker-progress" aria-label="案件进度"></div>
+    <div id="workerContent" aria-live="polite"><p>正在加载规则库…</p></div>
+    <div id="workerError" class="err" role="alert" hidden></div>
+    <button id="retrySchema" class="worker-link" type="button" onclick="init()" hidden>重新加载规则库</button>
+    <div class="worker-actions">
+      <button id="workerBackBtn" class="btn ghost" type="button">上一步</button>
+      <button id="workerNextBtn" class="btn" type="button" disabled>加载中…</button>
+    </div>
+    <p class="worker-privacy">初步分析，未经人工复核。资料仅在本次页面内暂存，刷新会清空。</p>
+  </section>
+
+  <div id="expertSurface" hidden>
+  <p class="expert-notice">专业审阅与工人求助使用同一份事实。下面是规则对输入的条件推演，事实及材料均未由系统查证；不等同于司法认定。</p>
+
   <div class="card" data-page-node-id="wtyxxEg2XyhzfxhFRwy7So">
     <h2 data-page-node-id="8v1SY3z0OoLtrpBDrHqLrT">① 输入事件</h2>
     <textarea id="eventText" placeholder="用自然语言描述事件，例如：我在公司工作了8个月，一直没有签书面劳动合同，上个月被辞退了……"></textarea>
     <div class="presets" id="presets" data-page-node-id="KBGAxTkIznjNuzR7W672NG"></div>
     <button class="btn" id="analyzeBtn" onclick="analyzeText()" data-page-node-id="Bf56IJOTYQFfnmvdksYVYw">分析 →</button>
-    <span id="engineHint" style="font-size:12px;color:var(--muted);margin-left:10px" data-page-node-id="uKJEKAAeRHvwSGe8ieW7tk">判定由确定性规则引擎完成；LLM 仅负责事实抽取</span>
+    <p id="engineHint" class="meta-note">点击上方「分析」会将文本发送至本机配置的事实抽取服务；请先脱敏。只用下方事实面板分析不发送文本。</p>
     <div id="errBox" class="err hidden" data-page-node-id="k0vt3nFgk8JmOqXooDuOA5"></div>
   </div>
 
@@ -211,66 +347,48 @@
   </div>
 
   <footer id="disclaimer" data-page-node-id="IwV3l2qTZqxQq0e7rcet5B">本工具输出为法律风险分析参考，不构成正式法律意见。条文以官方最新文本为准，重大事项请咨询执业律师。</footer>
+  </div>
 </div>
 
-<script>window.LEXCHAIN_STATIC = true;</script>
+<script src="./opinion.js"></script>
 <script src="./engine-browser.js"></script>
+<script src="./runtime.js"></script>
+<script src="./worker.js"></script>
 <script>
 let SCHEMA = null;
 let FACT_STATE = {};
-const STATIC_MODE = Boolean(window.LEXCHAIN_STATIC);
-// 本地服务仍使用 Node API；GitHub Pages 则直接在浏览器中运行确定性引擎。
-const API_BASE = STATIC_MODE ? '' : ((location.protocol.startsWith('http') && location.port === '8787') ? '' : 'http://127.0.0.1:8787');
 
 const ST_LABEL = {VIOLATION:'违反', RISK:'风险', DEFENSIBLE:'待查证', POSSIBLE:'证据不足', PERMITTED:'许可成立', COMPLIANT:'合规', DEFEATED:'例外推翻', NOT_TRIGGERED:'不适用'};
 const V_CLASS = {'存在违法行为':'v-bad','存在法律风险':'v-warn','证据不足，待补事实':'v-warn','未发现违反本规则库情形':'v-ok'};
 
 async function init() {
-  if (STATIC_MODE) {
-    const rules = await (await fetch('./rules/labor-rules.json')).json();
-    window.LEXCHAIN_RULESET = rules;
-    SCHEMA = {
-      has_key: false,
-      has_ollama: false,
-      facts: rules.facts,
-      rulebase: rules.meta,
-      presets: [
-        {
-          name: '未签合同被辞退',
-          text: '我在一家公司工作了8个月，公司一直没有和我签书面劳动合同，上个月公司突然把我辞退了，也没有给任何补偿。',
-          facts: { employment_exists: true, months_employed: 8, written_contract_signed: false, terminated_by_employer: true }
-        },
-        {
-          name: '拖欠工资未缴社保',
-          text: '公司已经拖欠我三个月工资没有足额发放，社保也从半年前就停缴了，我打算辞职。',
-          facts: { employment_exists: true, wage_paid_on_time_full: false, social_insurance_paid: false, terminated_by_employer: false }
-        },
-        {
-          name: '试用期被辞退',
-          text: '我和公司签了三年合同，试用期6个月。试用期第2个月公司直接口头让我走人，没说任何理由。',
-          facts: { employment_exists: true, probation_agreed: true, probation_months: 6, contract_duration_months: 36, terminated_by_employer: true, probation_termination_reason_stated: false }
-        }
-      ]
-    };
-  } else {
-    SCHEMA = await (await fetch(API_BASE + '/api/schema')).json();
+  document.getElementById('retrySchema').hidden = true;
+  try {
+    SCHEMA = await LexChainRuntime.schema();
+    const kb = document.getElementById('keyBadge');
+    kb.textContent = LexChainRuntime.isStatic ? '浏览器内规则计算' : '本机规则计算';
+    if (LexChainRuntime.isStatic) {
+      document.getElementById('engineHint').textContent = '公开版关闭自由文本自动识别。请在下方逐项确认事实后分析；文本只留在页面内。';
+      document.getElementById('analyzeBtn').disabled = true;
+      document.getElementById('analyzeBtn').textContent = '公开版请使用事实面板';
+    }
+    SCHEMA.facts.forEach(f => FACT_STATE[f.key] = null);
+    const pz = document.getElementById('presets');
+    pz.innerHTML = '';
+    (SCHEMA.presets || []).forEach(p => {
+      const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = '示例：' + p.name;
+      b.onclick = () => { document.getElementById('eventText').value = p.text; setFacts(p.facts); };
+      pz.appendChild(b);
+    });
+    renderFactPanel();
+    LexChainWorker.init();
+  } catch (error) {
+    const box = document.getElementById('workerError');
+    box.hidden = false;
+    box.textContent = '规则库加载失败：' + error.message;
+    document.getElementById('retrySchema').hidden = false;
+    document.getElementById('workerNextBtn').disabled = true;
   }
-  const kb = document.getElementById('keyBadge');
-  if (STATIC_MODE) {
-    kb.textContent = 'GitHub Pages 静态模式'; kb.className = 'badge warn';
-    document.getElementById('engineHint').textContent = '判定由浏览器端确定性规则引擎完成；自然语言使用关键词抽取，请核对事实面板';
-  }
-  else if (SCHEMA.has_key) { kb.textContent = '自然语言抽取 已就绪'; kb.className = 'badge ok'; }
-  else { kb.textContent = '未配置 DeepSeek Key（仅手动模式）'; kb.className = 'badge warn'; }
-  SCHEMA.facts.forEach(f => FACT_STATE[f.key] = null);
-  // 预设
-  const pz = document.getElementById('presets');
-  SCHEMA.presets.forEach(p => {
-    const b = document.createElement('span'); b.className = 'chip'; b.textContent = p.name;
-    b.onclick = () => { document.getElementById('eventText').value = p.text; analyzeText(p.facts); };
-    pz.appendChild(b);
-  });
-  renderFactPanel();
 }
 
 function renderFactPanel() {
@@ -324,60 +442,13 @@ function setFacts(facts) {
     if (!def) continue;
     if (def.type === 'number') {
       const inp = numberInput(k);
-      if (inp) { inp.value = v; FACT_STATE[k] = Number(v); }
+      if (inp && v !== null && v !== undefined && v !== '') { inp.value = v; FACT_STATE[k] = Number(v); }
     } else setFact(k, v);
   }
 }
 
 async function postJSON(url, body) {
-  if (STATIC_MODE && url === '/api/analyze') {
-    const supplied = body.facts || {};
-    const extraction = body.text ? staticExtract(body.text) : null;
-    const facts = extraction ? { ...extraction.facts, ...supplied } : { ...supplied };
-    return {
-      facts_used: facts,
-      extraction: extraction ? { ...extraction, extractor: '浏览器端关键词抽取（静态模式）' } : null,
-      report: window.LexChainBrowserEngine.analyze(facts, window.LEXCHAIN_RULESET)
-    };
-  }
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const resp = await fetch(API_BASE + url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
-      const txt = await resp.text();
-      let data = null;
-      try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
-      if (!resp.ok || !data) throw new Error((data && data.error) || `服务异常（HTTP ${resp.status}${txt ? '' : '，空响应'}）`);
-      return data;
-    } catch (e) {
-      if (attempt === 1) throw e;
-      await new Promise(r => setTimeout(r, 600)); // 首次失败（网络抖动/连接竞态）自动重试一次
-    }
-  }
-}
-
-function staticExtract(text) {
-  const facts = {};
-  const normalized = String(text || '').replace(/[，。！？；、]/g, ' ');
-  const numberWords = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
-  const number = (value) => /^\d+(?:\.\d+)?$/.test(value) ? Number(value) : numberWords[value];
-  const matchNumber = (pattern) => {
-    const m = normalized.match(pattern);
-    return m ? number(m[1]) : null;
-  };
-  if (/(公司|单位|雇主|老板)/.test(normalized) || /(工作|上班|入职)/.test(normalized)) facts.employment_exists = true;
-  const months = matchNumber(/([0-9一二两三四五六七八九十]+)\s*个?月/);
-  if (months !== null) facts.months_employed = months;
-  if (/(未|没|没有|一直没有|从未)[^\n]{0,16}(签|订)[^\n]{0,12}(书面)?劳动合同/.test(normalized) || /没签合同|未签合同/.test(normalized)) facts.written_contract_signed = false;
-  else if (/(签了|签订|签署)[^\n]{0,8}(劳动)?合同/.test(normalized)) facts.written_contract_signed = true;
-  if (/(辞退|开除|解除劳动合同|让.*走|裁员)/.test(normalized)) facts.terminated_by_employer = true;
-  if (/(拖欠|欠发|未足额|没有足额|工资.*没发|工资.*未发)/.test(normalized)) facts.wage_paid_on_time_full = false;
-  if (/(社保|社会保险)[^\n]{0,10}(停缴|未缴|没缴|没有缴|断缴)/.test(normalized)) facts.social_insurance_paid = false;
-  if (/试用期/.test(normalized)) facts.probation_agreed = true;
-  const probationMonths = matchNumber(/试用期\s*([0-9一二两三四五六七八九十]+)\s*个?月/);
-  if (probationMonths !== null) facts.probation_months = probationMonths;
-  if (/(三年|3年)/.test(normalized) && /合同/.test(normalized)) facts.contract_duration_months = 36;
-  if (/(没有|未|没)[^\n]{0,8}(理由|说明|告知)/.test(normalized) || /口头/.test(normalized)) facts.probation_termination_reason_stated = false;
-  return { facts, summary: text ? `已识别文本中的部分事实：${text}` : '' };
+  return LexChainRuntime.analyze(body);
 }
 
 async function analyzeText(presetFacts) {
@@ -388,7 +459,8 @@ async function analyzeText(presetFacts) {
   try {
     const data = await postJSON('/api/analyze', { text, facts: presetFacts || undefined });
     if (data.facts_used) setFacts(cleanFacts(data.facts_used));
-    render(data);
+    renderExpertReport(data);
+    LexChainWorker.receiveExpertAnalysis(data);
     hideError();
   } catch (e) { showError('请求失败：' + e.message); }
   btn.disabled = false;
@@ -397,7 +469,8 @@ async function analyzeText(presetFacts) {
 async function analyzeFacts() {
   try {
     const data = await postJSON('/api/analyze', { facts: FACT_STATE });
-    render(data); hideError();
+    renderExpertReport(data); hideError();
+    LexChainWorker.receiveExpertAnalysis(data);
   } catch (e) { showError('请求失败：' + e.message); }
 }
 
@@ -413,14 +486,15 @@ function showError(msg) {
 }
 function hideError() { document.getElementById('errBox').classList.add('hidden'); }
 
-function render(data) {
+function renderExpertReport(data) {
   const r = data.report;
   let html = '';
 
   // 抽取摘要
   if (data.extraction && data.extraction.summary) {
     const src = data.extraction.extractor || 'LLM';
-    html += `<div class="card"><h2>案情概括（${src}）</h2><p style="font-size:14px">${data.extraction.summary}</p></div>`;
+    const safe = value => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    html += `<div class="card"><h2>案情概括（${safe(src)} · 待核对）</h2><p style="font-size:14px">${safe(data.extraction.summary)}</p></div>`;
   }
 
   // 总判定
