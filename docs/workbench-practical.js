@@ -1,0 +1,42 @@
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(require('../opinion'),require('./workbench-guide'));else root.LexChainPractical=factory(root.LexChainOpinion,root.LexChainWorkbenchGuide);})(typeof globalThis!=='undefined'?globalThis:this,function(Opinion,Guide){
+'use strict';
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const issues=[...Opinion.ISSUES.filter(i=>i.rules.length),{key:'all',label:'全面核对（34 条劳动规则）',rules:null}];
+const need=(v,m)=>{if(!v)throw new Error(m);};
+const date=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\d$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)===s;
+function selectedRules(issue,assets){const item=issues.find(i=>i.key===issue);need(item,'请选择支持的劳动争议类型');const chosen=new Set(item.rules||assets.mapping.rules.map(r=>r.id));let changed=true;while(changed){changed=false;for(const r of assets.mapping.rules)if(chosen.has(r.id)&&r.violationOf&&!chosen.has(r.violationOf)){chosen.add(r.violationOf);changed=true;}}return assets.mapping.rules.filter(r=>chosen.has(r.id));}
+function factsIn(ast,set){if(!ast)return;if(ast.fact)set.add(ast.fact);if(ast.not)factsIn(ast.not,set);for(const child of ast.all||ast.any||[])factsIn(child,set);}
+function fields(issue,assets){const keys=new Set();for(const r of selectedRules(issue,assets))for(const ast of [r.condition,r.fulfillment,...r.exceptions.map(e=>e.condition)])factsIn(ast,keys);return assets.rules.facts.filter(f=>keys.has(f.key));}
+function wageSummary(rows){const wages=Opinion.calculateWageClaims({wageRows:rows});return {...wages,details:wages.claims.flatMap(c=>c.details||[])};}
+function prepare(draft,assets){
+ need(draft&&typeof draft==='object','请填写案件');
+ for(const [key,max,label] of [['title',200,'案件名称'],['subject',100,'事实主体（可用代号）'],['jurisdiction',80,'法域']])need(typeof draft[key]==='string'&&draft[key].trim()&&draft[key].length<=max,'请填写'+label+'，且不超过'+max+'字');
+ need(/^\d{4}-(0[1-9]|1[0-2])$/.test(draft.period),'请选择事实所属月份');
+ need(date(draft.eventDate)&&date(draft.asOf),'请填写有效的事件日期和分析截至日期');
+ need(draft.eventDate<=draft.asOf,'事件日期不能晚于分析截至日期');
+ need(typeof draft.actor==='string'&&draft.actor.trim()&&draft.actor.length<=120,'请填写录入者代号（不超过120字）');
+ need(typeof draft.description==='string'&&draft.description.length<=100000,'经过／材料最多10万字');
+ const definitions=fields(draft.issue,assets),facts={};
+ for(const def of definitions){const v=draft.answers?.[def.key];if(v===null||v===undefined||v===''){facts[def.key]=null;continue;}if(def.type==='bool')need(typeof v==='boolean',def.label+'请选择是、否或不清楚');else{need(typeof v==='number'&&Number.isFinite(v),def.label+'请填写有效数值');need(def.minimum===undefined||v>=def.minimum,def.label+'不得小于'+def.minimum);need(def.maximum===undefined||v<=def.maximum,def.label+'不得大于'+def.maximum);need(!def.integer||Number.isInteger(v),def.label+'须为整数');}facts[def.key]=v;}
+ const wages=wageSummary(['wage_arrears','all'].includes(draft.issue)?draft.wageRows:[]);need(!wages.errors.length,wages.errors.join('；'));
+ const sources=draft.description.trim()?[{id:'user-statement',title:'录入的案件经过／材料（未自动查证或抽取）',text:draft.description}]:[];
+ return {input:{facts,context:{subject:draft.subject.trim(),period:draft.period,eventDate:draft.eventDate,asOf:draft.asOf,jurisdiction:draft.jurisdiction.trim()},sources,events:[],evidence:[]},selectedIds:selectedRules(draft.issue,assets).map(r=>r.id),wages};
+}
+function collectUnknown(tree,out){if(!tree)return;if(tree.ast.fact&&tree.value==='U')out.add(tree.ast.fact);for(const child of tree.children||[])collectUnknown(child,out);}
+function report(c,run,assets){
+ const definitions=assets.rules.facts,model=Guide.model(c,definitions),isPractical=run?.origin?.kind==='PRACTICAL_CASE_INPUT',draft=isPractical?run.origin.practical.draft:null;
+ const wages=draft?wageSummary(['wage_arrears','all'].includes(draft.issue)?draft.wageRows:[]):null;
+ const nodes=c.nodes.map(n=>{const unknown=new Set();collectUnknown(n.trace.condition,unknown);collectUnknown(n.trace.fulfillment,unknown);n.trace.exceptions.forEach(e=>collectUnknown(e.tree,unknown));const rule=assets.rules.rules.find(r=>r.id===c.request.catalog.rules.find(r=>r.id===n.id)?.legalRuleId);const base=c.baseCertificate.steps.find(s=>s.id===rule?.id);return {...model.nodes.find(x=>x.id===n.id),computedStatus:n.computedStatus,dispositionCode:n.disposition,outputs:n.outputs,source:rule?.source||'自定义研究规则',text:rule?.text||'',unknown:[...unknown].map(key=>({key,label:definitions.find(d=>d.key===key)?.label||key})),governance:base?.governance?.status||'RESEARCH_ONLY'};});
+ const missing=[...new Map(nodes.filter(n=>n.dispositionCode!=='BLOCKED').flatMap(n=>n.unknown).map(f=>[f.key,f])).values()];
+ return {runId:run?.id||null,input:c.request.input,title:draft?.title||'已归档规则分析',issue:draft?.issue||null,practical:isPractical,wages,nodes,missing,counts:{total:nodes.length,violations:nodes.filter(n=>n.outputs.violation==='T').length,pending:nodes.filter(n=>Object.values(n.outputs).includes('U')).length,blocked:nodes.filter(n=>n.dispositionCode==='BLOCKED').length},legalPending:nodes.filter(n=>n.governance!=='SELECTED').length,certificateDigest:run?.certificateDigest||null};
+}
+function resultHtml(report,assets){const e=esc;const wages=report.wages;let html='<div class="practical-result-heading"><div><div class="guide-eyebrow">已执行规则引擎 · 结果来自本次输入</div><h2>'+e(report.title)+'</h2></div><span class="guide-badge">分析已归档</span></div><p>'+e(report.input.context.subject)+' · '+e(report.input.context.period)+' · '+e(report.input.context.jurisdiction)+' · 截至 '+e(report.input.context.asOf)+'</p><div class="practical-counts"><div><strong>'+report.counts.total+'</strong><span>条相关规则已计算</span></div><div><strong>'+report.counts.violations+'</strong><span>条计算为违反</span></div><div><strong>'+report.counts.pending+'</strong><span>条仍有未知输出</span></div></div>';
+ if(wages&&(wages.totalRows||['wage_arrears','all'].includes(report.issue))){html+='<article class="practical-amount"><h3>已填完整月份的工资差额</h3><strong>¥ '+wages.totalKnownArrears.toFixed(2)+'</strong><p>'+wages.completeMonths+' 个完整月份；'+wages.incompleteMonths+' 个不完整月份未计入。逐月计算 max(0, 应发 − 实发)，不跨月抵扣。</p>'+(wages.details.length?'<div class="tablewrap"><table><thead><tr><th>月份</th><th>应发</th><th>实发</th><th>差额</th></tr></thead><tbody>'+wages.details.map(w=>'<tr><td>'+e(w.month)+'</td><td>'+w.due.toFixed(2)+'</td><td>'+w.paid.toFixed(2)+'</td><td>'+w.amount.toFixed(2)+'</td></tr>').join('')+'</tbody></table></div>':'')+'<p>差额不自动等于已到期欠薪或法院支持金额；尚需核对发薪日、合法代扣与到账记录。本版不自动计算加班费、二倍工资、补偿金或赔偿金。</p></article>';}
+ html+='<p class="guide-callout">'+(report.legalPending?'本次有 '+report.legalPending+' 条规则的法律版本或适用仍待审核。以下区分“程序算出了什么”和“法律上最终是否成立”。':'仍需核对材料真实性与事件发生时的法律适用。')+'</p>';
+ html+='<h3>逐条分析：结论、理由、还缺什么</h3>'+report.nodes.map(n=>'<article class="practical-rule"><div class="practical-rule-head"><h4>'+e(n.title)+'</h4><span class="guide-badge">'+e(n.local)+' · '+e(n.disposition)+'</span></div><p><strong>'+e(n.output)+'</strong></p><p>'+e(n.source)+' · '+(n.governance==='SELECTED'?'系统内已选定版本，事实仍需复核':'法律版本／适用待审核')+'</p><details><summary>为什么得到这个结果？查看实际判断</summary><p>'+e(n.condition)+'</p><p>'+e(n.trigger)+' '+e(n.exceptions)+'</p>'+n.dependencies.map(x=>'<p>'+e(x)+'</p>').join('')+'<p>履行观察：'+e(n.fulfillment)+'</p>'+(n.text?'<blockquote>'+e(n.text)+'</blockquote><p class="guide-muted">以上为当前目录中的条文节选，须核对适用日期和官方原文。</p>':'')+'</details>'+(n.unknown.length?'<p>本条尚未知：'+n.unknown.map(f=>'<button class="practical-missing" data-practical-missing="'+e(f.key)+'">补充：'+e(f.label)+'</button>').join('')+'</p>':'<p class="guide-muted">本条所需的直接事实已填入；输入仍需证据核对。</p>')+'</article>').join('');
+ if(report.issue&&report.issue!=='all'){const issue=Opinion.issueFor(report.issue);html+='<div class="practical-next"><h3>接下来整理什么</h3><p>'+e(issue.next)+'</p><ul>'+Opinion.evidenceFor(report.issue).map(x=>'<li>'+e(x.label)+'：'+e(x.purpose)+'</li>').join('')+'</ul></div>';}
+ return html;
+}
+function sample(){return {title:'工资差额分析（可编辑示例）',actor:'体验者',subject:'示例劳动者甲',issue:'wage_arrears',period:'2026-10',eventDate:'2026-11-05',asOf:'2026-11-12',jurisdiction:'CN',description:'【虚构示例，可替换为脱敏案件材料】10月约定应发6000元，目前实际到账4000元，约定发薪日11月5日已过去。其余情况未查证。',answers:{employment_exists:true,wage_paid_on_time_full:false,social_insurance_paid:null,wage_deduction_for_damage:false},wageRows:[{month:'2026-10',due:'6000',paid:'4000'}]};}
+return {issues,fields,prepare,report,resultHtml,sample,escape:esc};
+});
