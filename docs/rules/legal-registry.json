@@ -1,0 +1,824 @@
+{
+  "format": "lexchain-legal-registry-v1",
+  "version": "2026-11-12.1",
+  "versions": [
+    {
+      "ruleId": "R30",
+      "versionId": "R30@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第三十条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R30@2026-11-12.1"
+    },
+    {
+      "ruleId": "R38",
+      "versionId": "R38@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第三十八条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R38@2026-11-12.1"
+    },
+    {
+      "ruleId": "R82",
+      "versionId": "R82@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十二条第一款",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R82@2026-11-12.1"
+    },
+    {
+      "ruleId": "R44",
+      "versionId": "R44@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动法》第四十四条、《劳动合同法》第三十一条、第八十五条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R44@2026-11-12.1"
+    },
+    {
+      "ruleId": "R19",
+      "versionId": "R19@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第十九条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R19@2026-11-12.1"
+    },
+    {
+      "ruleId": "R20",
+      "versionId": "R20@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R20@2026-11-12.1"
+    },
+    {
+      "ruleId": "R21",
+      "versionId": "R21@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十一条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R21@2026-11-12.1"
+    },
+    {
+      "ruleId": "R42",
+      "versionId": "R42@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十二条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R42@2026-11-12.1"
+    },
+    {
+      "ruleId": "R87",
+      "versionId": "R87@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十七条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R87@2026-11-12.1"
+    },
+    {
+      "ruleId": "R46",
+      "versionId": "R46@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十六条、第四十七条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R46@2026-11-12.1"
+    },
+    {
+      "ruleId": "R24",
+      "versionId": "R24@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十三条、第二十四条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R24@2026-11-12.1"
+    },
+    {
+      "ruleId": "R39",
+      "versionId": "R39@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第三十九条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R39@2026-11-12.1"
+    },
+    {
+      "ruleId": "R40",
+      "versionId": "R40@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R40@2026-11-12.1"
+    },
+    {
+      "ruleId": "R50",
+      "versionId": "R50@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第五十条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R50@2026-11-12.1"
+    },
+    {
+      "ruleId": "R14",
+      "versionId": "R14@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第十四条第三款、《实施条例》第七条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R14@2026-11-12.1"
+    },
+    {
+      "ruleId": "R82-2",
+      "versionId": "R82-2@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十二条第二款（合同期满后继续用工未续订，参照适用）",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R82-2@2026-11-12.1"
+    },
+    {
+      "ruleId": "R22",
+      "versionId": "R22@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十二条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R22@2026-11-12.1"
+    },
+    {
+      "ruleId": "R25",
+      "versionId": "R25@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十五条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R25@2026-11-12.1"
+    },
+    {
+      "ruleId": "R41",
+      "versionId": "R41@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十一条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R41@2026-11-12.1"
+    },
+    {
+      "ruleId": "R85",
+      "versionId": "R85@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十五条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R85@2026-11-12.1"
+    },
+    {
+      "ruleId": "R26",
+      "versionId": "R26@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第二十六条、第二十八条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R26@2026-11-12.1"
+    },
+    {
+      "ruleId": "R5-AL",
+      "versionId": "R5-AL@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《职工带薪年休假条例》第三条、第五条，《企业职工带薪年休假实施办法》第十条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R5-AL@2026-11-12.1"
+    },
+    {
+      "ruleId": "R87-2",
+      "versionId": "R87-2@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十二条、第八十七条（跨规则效果传导）",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R87-2@2026-11-12.1"
+    },
+    {
+      "ruleId": "R83",
+      "versionId": "R83@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十三条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R83@2026-11-12.1"
+    },
+    {
+      "ruleId": "R47-2",
+      "versionId": "R47-2@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十七条第二款",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R47-2@2026-11-12.1"
+    },
+    {
+      "ruleId": "R9",
+      "versionId": "R9@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第九条、第八十四条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R9@2026-11-12.1"
+    },
+    {
+      "ruleId": "R14-2",
+      "versionId": "R14-2@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第十四条第二款",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R14-2@2026-11-12.1"
+    },
+    {
+      "ruleId": "R45",
+      "versionId": "R45@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十二条、第四十五条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R45@2026-11-12.1"
+    },
+    {
+      "ruleId": "R87-3",
+      "versionId": "R87-3@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第四十五条、第八十七条（跨规则效果传导）",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R87-3@2026-11-12.1"
+    },
+    {
+      "ruleId": "R58-SI",
+      "versionId": "R58-SI@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《社会保险法》第五十八条、第六十三条，《劳动法》第七十二条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R58-SI@2026-11-12.1"
+    },
+    {
+      "ruleId": "R31",
+      "versionId": "R31@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动法》第四十一条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R31@2026-11-12.1"
+    },
+    {
+      "ruleId": "R70",
+      "versionId": "R70@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第六十八条、第七十二条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R70@2026-11-12.1"
+    },
+    {
+      "ruleId": "R16-P",
+      "versionId": "R16-P@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《工资支付暂行规定》第十六条",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R16-P@2026-11-12.1"
+    },
+    {
+      "ruleId": "R82-3",
+      "versionId": "R82-3@candidate-2026-11-12",
+      "jurisdictions": [
+        "CN"
+      ],
+      "includesSubdivisions": true,
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "sourceLabel": "《劳动合同法》第八十二条第二款（应订无固定期限而未订，跨规则效果传导）",
+      "sourceUrl": null,
+      "sourceSnapshotId": null,
+      "review": {
+        "status": "PENDING",
+        "reviewer": null,
+        "reviewedAt": null,
+        "reason": "原规则库没有经过验证的版本、法域和审核记录；禁止把候选版本自动当作现行法。"
+      },
+      "transition": {
+        "status": "UNREVIEWED",
+        "basis": null
+      },
+      "mappingVersion": "R82-3@2026-11-12.1"
+    }
+  ],
+  "sources": [],
+  "policy": "exact-event-date-and-jurisdiction; no-newest-default; review-required-unless-fully-approved"
+}

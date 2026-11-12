@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LexChain · KD 道义模态研究台</title>
+<style>
+:root{color-scheme:dark;--bg:#0d151b;--card:#16232c;--line:#304551;--text:#e1edf2;--muted:#a0b4bf;--accent:#80d5bf;--warning:#ffce79}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,sans-serif}main{max-width:1120px;margin:38px auto;padding:0 24px}a{color:var(--accent)}h1{font-size:32px;margin:12px 0}h2{font-size:21px}p{margin:10px 0}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin:18px 0}.badge{display:inline-block;border:1px solid var(--line);padding:3px 10px;border-radius:24px;font-size:13px}label{display:block;margin-top:15px;font-weight:600}textarea,input,select{width:100%;color:var(--text);background:#0c1820;border:1px solid #59717e;border-radius:7px;padding:11px;font:16px/1.5 ui-monospace,monospace}textarea{min-height:130px;resize:vertical}button{background:var(--accent);color:#10251f;border:0;border-radius:6px;padding:10px 15px;font-size:15px;cursor:pointer;margin:12px 8px 0 0}button:disabled{opacity:.5;cursor:wait}button.secondary{background:#263d49;color:var(--text)}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#0b171e;font-size:13px;max-height:520px;overflow:auto}.status{font-size:25px;font-weight:700}.warn{color:var(--warning)}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px;text-align:left;border-bottom:1px solid var(--line);overflow-wrap:anywhere}summary{cursor:pointer;color:var(--accent);padding:10px 0}.error{color:#ffb3ad}code{color:#b8dfef}.actions{display:flex;flex-wrap:wrap}#result:empty{display:none}@media(max-width:760px){.grid{grid-template-columns:1fr}main{padding:0 15px}h1{font-size:26px}.card{padding:16px}}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+</style></head>
+<body><main>
+<a href="./index.html">← 返回 LexChain</a><h1>KD 道义模态研究台</h1>
+<p class="muted">把公式交给求解器，再核对它交付的证明或反模型。</p>
+<span class="badge">命题逻辑 KD</span> <span class="badge">串行 Kripke 框架</span> <span class="badge">浏览器本地计算</span>
+<div class="grid"><section class="card"><h2>输入研究问题</h2>
+<label for="example">研究算例</label><select id="example"><option value="D">义务蕴涵许可</option><option value="T_FAIL">应当不推出实际发生</option><option value="CONFLICT">互相冲突的义务</option><option value="VIOLATION">义务与未履行并存</option><option value="OUTER">条件在义务外：可推出</option><option value="INNER">条件在义务内：不能直接推出</option><option value="EXCEPTION_UNRESOLVED">未知例外不能自动补假</option><option value="ROSS">Ross 弱化</option><option value="4_FAIL">KD 不预设传递性</option></select>
+<label for="mode">判定任务</label><select id="mode"><option value="validity">有效性：结论在所有 KD 模型中成立？</option><option value="entailment">局部后承：前提能推出结论？</option><option value="satisfiability">可满足性：前提能同时成立？</option></select>
+<label for="premises">前提（每行一条，只要求在当前世界成立）</label><textarea id="premises" spellcheck="false" placeholder="employment&#10;employment -> O(pay)"></textarea>
+<label for="conclusion">待证结论</label><input id="conclusion" spellcheck="false" value="O(p) -> P(p)">
+<div class="actions"><button id="solve">运行判定</button><button id="download" class="secondary" disabled>下载结果与证书</button></div><p id="error" class="error" role="alert"></p>
+</section><section class="card"><h2>语言与研究边界</h2>
+<p><code>O(p)</code>：应当 p。<code>P(p)</code>：弱许可（未被禁止），定义为 <code>!O(!p)</code>，不等于法规明示授权。<code>F(p)</code>：禁止 p，定义为 <code>O(!p)</code>。</p>
+<p>连接词：<code>!</code> 否定、<code>&amp;</code> 合取、<code>|</code> 析取、<code>-></code> 蕴含、<code>&lt;-></code> 等价。可使用中文命题名、<code>true/false</code>、括号及嵌套。</p>
+<p>优先级：否定与模态 → 合取 → 析取 → 蕴含 → 等价。蕴含向右结合。<code>O</code>、<code>P</code>、<code>F</code> 是保留符号；本版本没有主体参数、量词或二元条件义务算子。</p>
+<p>每个世界至少有一个可达世界；不要求自身可达。因此，应当成立不保证实际发生。未提供事实不是提供了该事实的否定；这里没有 K3 的第三真值。</p>
+<p>本研究台独立于劳动争议规则评估。算例是形式化示意，不会自动把现有34条规则翻译成模态公理。资源上限触发时返回“未判定”。</p>
+<details><summary>如何核查结果</summary><p>闭合表证书逐步检查布尔展开和模态见证；反模型逐世界检查串行性及公式真值。检查模块不调用求解器，但共享公式解析与规范化模块。结果不证明现实证据真实或法律规范有效。</p></details>
+</section></div>
+<section id="result" class="card" aria-live="polite"></section>
+<section class="card"><h2>复核保存的结果</h2><p class="muted">将导出的 JSON 粘贴到这里，独立检查其中的模型或闭合证明。若修改了公式，请同时核对 JSON 中的 query。</p><label for="saved">结果 JSON</label><textarea id="saved" spellcheck="false" placeholder='{"format":"lexchain-kd-result-v1", ...}'></textarea><button id="check" class="secondary">只运行证书检查</button><p id="checkResult" role="status"></p></section>
+<p class="muted">理论依据：<a href="https://plato.stanford.edu/entries/logic-modal/" target="_blank" rel="noopener">SEP · Modal Logic</a>；<a href="https://plato.stanford.edu/entries/logic-deontic/" target="_blank" rel="noopener">SEP · Deontic Logic</a>。KD 是研究基线，条件义务与可废止例外仍需独立研究。</p>
+</main><script src="./modal-ui.js"></script></body></html>

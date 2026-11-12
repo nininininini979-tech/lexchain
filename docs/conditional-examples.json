@@ -1,0 +1,644 @@
+[
+  {
+    "id": "CHISHOLM_CONSISTENT",
+    "title": "Chisholm 条件义务与违约事实可共存",
+    "expected": "CONSISTENT",
+    "input": {
+      "norms": [
+        {
+          "id": "primary",
+          "given": "true",
+          "ought": "go"
+        },
+        {
+          "id": "ideal_notice",
+          "given": "go",
+          "ought": "tell"
+        },
+        {
+          "id": "ctd_notice",
+          "given": "!go",
+          "ought": "!tell"
+        }
+      ],
+      "facts": [
+        "!go"
+      ]
+    }
+  },
+  {
+    "id": "CHISHOLM_CTD",
+    "title": "不去的情境下不应告知会去",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "primary",
+          "given": "true",
+          "ought": "go"
+        },
+        {
+          "id": "ideal_notice",
+          "given": "go",
+          "ought": "tell"
+        },
+        {
+          "id": "ctd_notice",
+          "given": "!go",
+          "ought": "!tell"
+        }
+      ],
+      "facts": [
+        "!go"
+      ],
+      "query": {
+        "ought": "!tell"
+      }
+    }
+  },
+  {
+    "id": "CHISHOLM_IDEAL",
+    "title": "原有理想义务仍然保留",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "primary",
+          "given": "true",
+          "ought": "go"
+        },
+        {
+          "id": "ideal_notice",
+          "given": "go",
+          "ought": "tell"
+        },
+        {
+          "id": "ctd_notice",
+          "given": "!go",
+          "ought": "!tell"
+        }
+      ],
+      "facts": [
+        "!go"
+      ],
+      "query": {
+        "ought": "tell",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "FD_FAIL",
+    "title": "事实不能把情境义务变成无条件义务",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "conditional",
+          "given": "p",
+          "ought": "q"
+        }
+      ],
+      "facts": [
+        "p"
+      ],
+      "query": {
+        "ought": "q",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "DD",
+    "title": "义务分离：理想条件中的义务可传递",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "n1",
+          "given": "true",
+          "ought": "p"
+        },
+        {
+          "id": "n2",
+          "given": "p",
+          "ought": "q"
+        }
+      ],
+      "query": {
+        "ought": "q",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "STRENGTHEN_FAIL",
+    "title": "条件不能任意加强",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "n",
+          "given": "p",
+          "ought": "q"
+        }
+      ],
+      "query": {
+        "ought": "q",
+        "given": "p & r"
+      }
+    }
+  },
+  {
+    "id": "ROSS",
+    "title": "结果弱化仍然成立",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "n",
+          "given": "true",
+          "ought": "mail"
+        }
+      ],
+      "query": {
+        "ought": "mail | steal",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "NO_FACT_INFERENCE",
+    "title": "没有规则时不从事实生成无条件义务",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [],
+      "facts": [
+        "p"
+      ],
+      "query": {
+        "ought": "p",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "WAGE_REPAIR",
+    "title": "未按时付款情境中的补救义务",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay_on_time",
+          "given": "employment",
+          "ought": "paid_on_time"
+        },
+        {
+          "id": "repair",
+          "given": "employment & !paid_on_time",
+          "ought": "compensate"
+        }
+      ],
+      "facts": [
+        "employment",
+        "!paid_on_time"
+      ],
+      "query": {
+        "ought": "compensate"
+      }
+    }
+  },
+  {
+    "id": "WAGE_PRIMARY",
+    "title": "补救情境不抹去原条件义务",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay_on_time",
+          "given": "employment",
+          "ought": "paid_on_time"
+        },
+        {
+          "id": "repair",
+          "given": "employment & !paid_on_time",
+          "ought": "compensate"
+        }
+      ],
+      "facts": [
+        "employment",
+        "!paid_on_time"
+      ],
+      "query": {
+        "ought": "paid_on_time",
+        "given": "employment"
+      }
+    }
+  },
+  {
+    "id": "WAGE_NOT_UNCONDITIONAL",
+    "title": "补救义务不是无条件义务",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay_on_time",
+          "given": "employment",
+          "ought": "paid_on_time"
+        },
+        {
+          "id": "repair",
+          "given": "employment & !paid_on_time",
+          "ought": "compensate"
+        }
+      ],
+      "facts": [
+        "employment",
+        "!paid_on_time"
+      ],
+      "query": {
+        "ought": "compensate",
+        "given": "true"
+      }
+    }
+  },
+  {
+    "id": "EXCEPTION_ABSENT",
+    "title": "已明确排除例外",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay",
+          "given": "employment",
+          "ought": "pay",
+          "unless": "exception"
+        }
+      ],
+      "facts": [
+        "employment",
+        "!exception"
+      ],
+      "query": {
+        "ought": "pay"
+      }
+    }
+  },
+  {
+    "id": "EXCEPTION_UNKNOWN",
+    "title": "未知例外不能自动补假",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay",
+          "given": "employment",
+          "ought": "pay",
+          "unless": "exception"
+        }
+      ],
+      "facts": [
+        "employment"
+      ],
+      "query": {
+        "ought": "pay"
+      }
+    }
+  },
+  {
+    "id": "EXCEPTION_PRESENT",
+    "title": "显式例外排除条件义务适用",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "pay",
+          "given": "employment",
+          "ought": "pay",
+          "unless": "exception"
+        }
+      ],
+      "facts": [
+        "employment",
+        "exception"
+      ],
+      "query": {
+        "ought": "pay"
+      }
+    }
+  },
+  {
+    "id": "OPPOSITE",
+    "title": "同条件冲突被识别",
+    "expected": "INCONSISTENT_NORMS",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p"
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p"
+        }
+      ],
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "CROSS_CONFLICT",
+    "title": "三条规则形成的全局冲突",
+    "expected": "INCONSISTENT_NORMS",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p"
+        },
+        {
+          "id": "b",
+          "given": "p",
+          "ought": "q"
+        },
+        {
+          "id": "c",
+          "given": "true",
+          "ought": "!q"
+        }
+      ],
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "PRIORITY_HIGH",
+    "title": "高优先级规则保留",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p",
+          "priority": 10
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p",
+          "priority": 0
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "p"
+      }
+    }
+  },
+  {
+    "id": "PRIORITY_EQUAL",
+    "title": "同级冲突保留两种子理论",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p"
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p"
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "p"
+      }
+    }
+  },
+  {
+    "id": "PRIORITY_COMMON",
+    "title": "同级分歧下共同结论仍成立",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p"
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p"
+        },
+        {
+          "id": "common",
+          "given": "true",
+          "ought": "q"
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "INCLUSION_NOT_VOTE",
+    "title": "包含极大不按规则数量投票",
+    "expected": "NOT_ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p & q"
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p"
+        },
+        {
+          "id": "c",
+          "given": "true",
+          "ought": "!q"
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "!p"
+      }
+    }
+  },
+  {
+    "id": "STRICT",
+    "title": "不可撤销规范优先于所有可废止规范",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "!p",
+          "strict": true
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "p",
+          "priority": 100
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "!p"
+      }
+    }
+  },
+  {
+    "id": "STRICT_CONFLICT",
+    "title": "不可撤销规范冲突不自动删去",
+    "expected": "INCONSISTENT_STRICT_NORMS",
+    "input": {
+      "norms": [
+        {
+          "id": "a",
+          "given": "true",
+          "ought": "p",
+          "strict": true
+        },
+        {
+          "id": "b",
+          "given": "true",
+          "ought": "!p",
+          "strict": true
+        }
+      ],
+      "policy": "priority",
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "IMPOSSIBLE_CONTEXT",
+    "title": "查询条件不可能时提示空真",
+    "expected": "VACUOUS_CONTEXT",
+    "input": {
+      "norms": [],
+      "query": {
+        "ought": "q",
+        "given": "p & !p"
+      }
+    }
+  },
+  {
+    "id": "FACT_CONFLICT",
+    "title": "事实冲突阻止情境结论",
+    "expected": "INCONSISTENT_FACTS",
+    "input": {
+      "norms": [],
+      "facts": [
+        "p",
+        "!p"
+      ],
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "BACKGROUND_CONFLICT",
+    "title": "背景不相容被单独识别",
+    "expected": "INCONSISTENT_BACKGROUND",
+    "input": {
+      "norms": [],
+      "background": [
+        "p",
+        "!p"
+      ],
+      "query": {
+        "ought": "q"
+      }
+    }
+  },
+  {
+    "id": "VACUOUS_NORM",
+    "title": "不可能规范条件被单独标记",
+    "expected": "CONSISTENT",
+    "input": {
+      "norms": [
+        {
+          "id": "empty",
+          "given": "p & !p",
+          "ought": "false"
+        }
+      ]
+    }
+  },
+  {
+    "id": "SPECIFIC_CONTEXT",
+    "title": "一般条件与特殊条件可分层共存",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [
+        {
+          "id": "general",
+          "given": "bird",
+          "ought": "fly"
+        },
+        {
+          "id": "specific",
+          "given": "bird & penguin",
+          "ought": "!fly"
+        }
+      ],
+      "query": {
+        "ought": "!fly",
+        "given": "bird & penguin"
+      }
+    }
+  },
+  {
+    "id": "IDENTITY",
+    "title": "同一条件内容成立是语义恒真，不是发现新法源",
+    "expected": "ENTAILED",
+    "input": {
+      "norms": [],
+      "facts": [
+        "p"
+      ],
+      "query": {
+        "ought": "p"
+      }
+    }
+  },
+  {
+    "id": "IMPOSSIBLE_OBLIGATION",
+    "title": "可行条件不能负担不可能内容",
+    "expected": "INCONSISTENT_NORMS",
+    "input": {
+      "norms": [
+        {
+          "id": "impossible",
+          "given": "p",
+          "ought": "false"
+        }
+      ],
+      "query": {
+        "given": "p",
+        "ought": "q"
+      }
+    }
+  }
+]

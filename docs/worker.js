@@ -63,7 +63,7 @@
     if (!$('workerDescription')) return '';
     analysis = null;
     const previous = opinion().buildFacts(caseFile);
-    const answerEls = document.querySelectorAll('[data-fact-key]');
+    const answerEls = $('workerContent').querySelectorAll('[data-fact-key]');
     answerEls.forEach(el => {
       if (el.dataset.factKey === 'latePayment') caseFile.latePayment = el.value === 'unknown' ? 'unknown' : el.value === 'yes' ? 'yes' : 'no';
       else if (el.dataset.factKey === 'paymentDue') caseFile.paymentDue = el.value === 'unknown' ? 'unknown' : el.value === 'yes' ? 'yes' : 'no';
@@ -215,7 +215,8 @@
     if (!$('expertSurface').hidden) return;
     if (step === 1) readFacts(false);
     if (step === 2) collectEvidence();
-    setFacts(analysis && analysis.facts_used || opinion().buildFacts(caseFile));
+    const expertValues = analysis && analysis.facts_used || opinion().buildFacts(caseFile);
+    setFacts(expertValues, analysis && analysis.confirmed_facts || expertValues);
     $('eventText').value = caseFile.description;
     document.body.classList.remove('worker-mode');
     $('workerSurface').hidden = true;
@@ -230,7 +231,7 @@
   }
   async function enterWorker() {
     if (!$('workerSurface').hidden) return;
-    const expertFacts = cleanFacts(FACT_STATE);
+    const expertFacts = cleanFacts(FACT_CONFIRMED);
     const baseline = cleanFacts(opinion().buildFacts(caseFile));
     const keys = new Set([...Object.keys(expertFacts), ...Object.keys(baseline)]);
     const changed = [...keys].some(key => expertFacts[key] !== baseline[key]);
@@ -247,7 +248,16 @@
   }
   function receiveExpertAnalysis(data) {
     analysis = data;
-    updateExpertFacts(data.facts_used || {});
+    updateExpertFacts(data.confirmed_facts || data.facts_used || {});
+  }
+  function invalidateAnalysis() {
+    analysis = null;
+    if (step === 3) { step = 2; if (!$('workerSurface').hidden) render(); }
+  }
+  function restoreFacts(facts) {
+    // Refresh the fact projection without erasing the current intake, issue or wage rows.
+    updateExpertFacts(facts);
+    invalidateAnalysis();
   }
   function reset() {
     caseFile = freshCase(); step = 0; analysis = null; analyzing = false;
@@ -261,5 +271,5 @@
     $('expertModeBtn').onclick = enterExpert;
     render();
   }
-  window.LexChainWorker = { init, receiveExpertAnalysis, reset, getCase: () => caseFile };
+  window.LexChainWorker = { init, receiveExpertAnalysis, reset, restoreFacts, invalidateAnalysis, getCase: () => caseFile };
 })();

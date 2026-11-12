@@ -141,8 +141,8 @@
       condition: employerPermission(rule) ? '单位可能援引的解除依据；适用要件、证据及程序均待核实' : rule.status === 'VIOLATION' ? '按所填事实匹配，证据仍待核实' : '按所填事实作条件分析，不能直接认定违法',
       missingFacts: rule.missingFacts || []
     });
-    const legalBasis = relevant.filter(rule => !['NOT_TRIGGERED', 'POSSIBLE', 'DEFEATED'].includes(rule.status)).map(mapRule);
-    const pendingLegalBasis = relevant.filter(rule => rule.status === 'POSSIBLE').map(mapRule);
+    const legalBasis = relevant.filter(rule => !['NOT_TRIGGERED', 'POSSIBLE', 'DEFEATED', 'REVIEW_REQUIRED'].includes(rule.status)).map(mapRule);
+    const pendingLegalBasis = relevant.filter(rule => ['POSSIBLE','REVIEW_REQUIRED'].includes(rule.status)).map(mapRule);
     const hasSignal = relevant.some(rule => !employerPermission(rule) &&
       (['VIOLATION', 'RISK', 'DEFENSIBLE'].includes(rule.status) ||
        (rule.status === 'PERMITTED' && rule.deontic?.bearer === '劳动者')));
@@ -167,6 +167,7 @@
       else if (caseData.paymentDue !== 'yes' && caseData.latePayment !== 'yes') summary += '付款期限或迟发情况未确认，差额暂不能认定为已到期欠薪。';
       if (caseData.latePayment === 'yes' && caseData.paymentDue === 'no') summary += '迟发/未足额记录与发薪日期回答不一致，请核对是哪一笔工资及其付款日期。';
     }
+    if(relevant.some(r=>r.status==='REVIEW_REQUIRED')) { conclusionLevel='研究计算完成，法律版本与适用待审核'; summary+=' 当前规则的版本、法域或完整要件尚未通过审核，不能据此确认请求权成立。'; }
     const evidence = caseData.evidence || {};
     const evidenceGaps = evidenceFor(caseData.issue).filter(item => evidence[item.key] !== 'has').map(item => ({
       ...item, status: evidence[item.key] || 'unknown',
@@ -189,7 +190,7 @@
       factsUsed: { items, wageMonths: wages.completeMonths, incompleteMonths: wages.incompleteMonths },
       coverageNote: caseData.issue === 'injury' ? '当前规则库未覆盖工伤认定、职业伤害赔付和申请期限，仅提供材料整理与人工转介。' :
         caseData.issue === 'other' ? '其他争议仅提供材料整理与求助路径，尚无自动定性。' : '本版仅估算工资差额；加班费、二倍工资差额、经济补偿和赔偿金仍需人工核算。地方规定及最新裁审口径未核验。',
-      disclaimer: '初步分析 · 未经律师或法律援助人员复核。事实和证据状态均由你填写，系统未查验材料；不构成正式律师法律意见。条文节选以官方最新文本为准。'
+      disclaimer: '初步分析 · 未经律师或法律援助人员复核。事实和证据状态均由你填写，系统未查验材料；不构成正式律师法律意见。法律依据须按事件发生时间、法域及过渡规则核对相应版本。'
     };
   }
   return { ISSUES, COMMON_QUESTIONS, EVIDENCE_CATALOG, questionsFor, evidenceFor, issueFor, calculateWageClaims, buildFacts, buildOpinion };
