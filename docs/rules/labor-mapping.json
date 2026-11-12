@@ -1,0 +1,1808 @@
+{
+  "format": "lexchain-labor-mapping-v1",
+  "version": "2026-11-12.1",
+  "rules": [
+    {
+      "id": "R30",
+      "mappingVersion": "R30@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第三十条",
+      "bearer": "用人单位",
+      "action": "及时足额支付劳动报酬",
+      "actionAtom": "act_R30",
+      "condition": {
+        "fact": "employment_exists",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "wage_paid_on_time_full",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。",
+        "按时足额支付是历史履行观察，与规范要求的行为命题分离。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "wage_paid_on_time_full"
+      ],
+      "formula": "O(act_R30 | A_R30 & !E_R30)",
+      "conditionAtom": "A_R30",
+      "exceptionAtom": "E_R30"
+    },
+    {
+      "id": "R38",
+      "mappingVersion": "R38@2026-11-12.1",
+      "kind": "AUTH",
+      "source": "《劳动合同法》第三十八条",
+      "bearer": "劳动者",
+      "action": "解除劳动合同（被迫解除）",
+      "actionAtom": "act_R38",
+      "condition": {
+        "any": [
+          {
+            "all": [
+              {
+                "fact": "employment_exists",
+                "eq": true
+              },
+              {
+                "fact": "wage_paid_on_time_full",
+                "eq": false
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "employment_exists",
+                "eq": true
+              },
+              {
+                "fact": "social_insurance_paid",
+                "eq": false
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": null,
+      "violationOf": null,
+      "limits": [
+        "许可不等于劳动者已经实际解除；后果仍使用独立事实worker_rescinded_38。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "social_insurance_paid",
+        "wage_paid_on_time_full"
+      ],
+      "formula": "AUTH(act_R38 | A_R38 & !E_R38)",
+      "conditionAtom": "A_R38",
+      "exceptionAtom": "E_R38"
+    },
+    {
+      "id": "R82",
+      "mappingVersion": "R82@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十二条第一款",
+      "bearer": "用人单位",
+      "action": "每月支付二倍工资（差额）",
+      "actionAtom": "act_R82",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "months_employed",
+            "op": ">",
+            "value": 1
+          },
+          {
+            "fact": "months_employed",
+            "op": "<",
+            "value": 12
+          },
+          {
+            "fact": "written_contract_signed",
+            "eq": false
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "double_wage_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "原拒签例外过宽：实施条例第五条与第六条期间及责任不同；本版本停用该旧例外，提交人工审核。"
+      ],
+      "quarantinedExceptions": [
+        {
+          "id": "X82-1",
+          "source": "《劳动合同法实施条例》第五条、第六条",
+          "condition": {
+            "all": [
+              {
+                "fact": "worker_refused_contract",
+                "eq": true
+              },
+              {
+                "fact": "employer_written_termination_notice",
+                "eq": true
+              }
+            ]
+          }
+        }
+      ],
+      "factKeys": [
+        "double_wage_paid",
+        "employment_exists",
+        "months_employed",
+        "written_contract_signed"
+      ],
+      "formula": "O(act_R82 | A_R82 & !E_R82)",
+      "conditionAtom": "A_R82",
+      "exceptionAtom": "E_R82"
+    },
+    {
+      "id": "R44",
+      "mappingVersion": "R44@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动法》第四十四条、《劳动合同法》第三十一条、第八十五条",
+      "bearer": "用人单位",
+      "action": "按150%/200%/300%标准支付加班费",
+      "actionAtom": "act_R44",
+      "condition": {
+        "any": [
+          {
+            "all": [
+              {
+                "fact": "employment_exists",
+                "eq": true
+              },
+              {
+                "fact": "overtime_workday_hours",
+                "op": ">",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "employment_exists",
+                "eq": true
+              },
+              {
+                "fact": "overtime_weekend_hours",
+                "op": ">",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "employment_exists",
+                "eq": true
+              },
+              {
+                "fact": "overtime_holiday_hours",
+                "op": ">",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "any": [
+          {
+            "fact": "overtime_paid_correctly",
+            "eq": true
+          },
+          {
+            "all": [
+              {
+                "fact": "weekend_overtime_compensated",
+                "eq": true
+              },
+              {
+                "not": {
+                  "any": [
+                    {
+                      "fact": "overtime_workday_hours",
+                      "op": ">",
+                      "value": 0
+                    },
+                    {
+                      "fact": "overtime_holiday_hours",
+                      "op": ">",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "overtime_holiday_hours",
+        "overtime_paid_correctly",
+        "overtime_weekend_hours",
+        "overtime_workday_hours",
+        "weekend_overtime_compensated"
+      ],
+      "formula": "O(act_R44 | A_R44 & !E_R44)",
+      "conditionAtom": "A_R44",
+      "exceptionAtom": "E_R44"
+    },
+    {
+      "id": "R19",
+      "mappingVersion": "R19@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第十九条",
+      "bearer": "用人单位",
+      "action": "试用期时长不超过法定上限且仅约定一次",
+      "actionAtom": "act_R19",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "probation_agreed",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "any": [
+            {
+              "all": [
+                {
+                  "fact": "contract_duration_months",
+                  "op": ">=",
+                  "value": 3
+                },
+                {
+                  "fact": "contract_duration_months",
+                  "op": "<",
+                  "value": 12
+                },
+                {
+                  "fact": "probation_months",
+                  "op": ">",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "all": [
+                {
+                  "fact": "contract_duration_months",
+                  "op": ">=",
+                  "value": 12
+                },
+                {
+                  "fact": "contract_duration_months",
+                  "op": "<",
+                  "value": 36
+                },
+                {
+                  "fact": "probation_months",
+                  "op": ">",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "all": [
+                {
+                  "fact": "contract_duration_months",
+                  "op": ">=",
+                  "value": 36
+                },
+                {
+                  "fact": "probation_months",
+                  "op": ">",
+                  "value": 6
+                }
+              ]
+            },
+            {
+              "all": [
+                {
+                  "fact": "contract_duration_months",
+                  "eq": 0
+                },
+                {
+                  "fact": "probation_months",
+                  "op": ">",
+                  "value": 6
+                }
+              ]
+            },
+            {
+              "all": [
+                {
+                  "fact": "contract_duration_months",
+                  "op": ">",
+                  "value": 0
+                },
+                {
+                  "fact": "contract_duration_months",
+                  "op": "<",
+                  "value": 3
+                }
+              ]
+            },
+            {
+              "fact": "probation_only_once",
+              "eq": false
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "无固定期限、完成任务期限及试用期约定类型需更细事实。"
+      ],
+      "factKeys": [
+        "contract_duration_months",
+        "employment_exists",
+        "probation_agreed",
+        "probation_months",
+        "probation_only_once"
+      ],
+      "formula": "O(act_R19 | A_R19 & !E_R19)",
+      "conditionAtom": "A_R19",
+      "exceptionAtom": "E_R19"
+    },
+    {
+      "id": "R20",
+      "mappingVersion": "R20@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第二十条",
+      "bearer": "用人单位",
+      "action": "试用期工资不低于法定下限",
+      "actionAtom": "act_R20",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "probation_agreed",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "probation_wage_compliant",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "probation_agreed",
+        "probation_wage_compliant"
+      ],
+      "formula": "O(act_R20 | A_R20 & !E_R20)",
+      "conditionAtom": "A_R20",
+      "exceptionAtom": "E_R20"
+    },
+    {
+      "id": "R21",
+      "mappingVersion": "R21@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第二十一条",
+      "bearer": "用人单位",
+      "action": "试用期解除须说明理由并符合第三十九条/第四十条第一二项情形",
+      "actionAtom": "act_R21",
+      "condition": {
+        "all": [
+          {
+            "fact": "probation_agreed",
+            "eq": true
+          },
+          {
+            "fact": "terminated_by_employer",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "all": [
+          {
+            "fact": "probation_termination_reason_stated",
+            "eq": true
+          },
+          {
+            "fact": "probation_ground_legal",
+            "eq": true
+          }
+        ]
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "probation_agreed",
+        "probation_ground_legal",
+        "probation_termination_reason_stated",
+        "terminated_by_employer"
+      ],
+      "formula": "O(act_R21 | A_R21 & !E_R21)",
+      "conditionAtom": "A_R21",
+      "exceptionAtom": "E_R21"
+    },
+    {
+      "id": "R42",
+      "mappingVersion": "R42@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动合同法》第四十二条",
+      "bearer": "用人单位",
+      "action": "依第四十条/第四十一条解除劳动合同",
+      "actionAtom": "act_R42",
+      "condition": {
+        "all": [
+          {
+            "fact": "worker_special_protection",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "fact": "ground_40_with_procedure",
+                "eq": true
+              },
+              {
+                "fact": "ground_layoff_41_procedure",
+                "eq": true
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "fact": "terminated_by_employer",
+          "eq": true
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "occurrence": {
+        "fact": "terminated_by_employer",
+        "eq": true
+      },
+      "factKeys": [
+        "ground_40_with_procedure",
+        "ground_layoff_41_procedure",
+        "terminated_by_employer",
+        "worker_special_protection"
+      ],
+      "formula": "O(!act_R42 | A_R42 & !E_R42)",
+      "conditionAtom": "A_R42",
+      "exceptionAtom": "E_R42"
+    },
+    {
+      "id": "R87",
+      "mappingVersion": "R87@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十七条",
+      "bearer": "用人单位",
+      "action": "按经济补偿标准二倍支付违法解除赔偿金",
+      "actionAtom": "act_R87",
+      "condition": {
+        "all": [
+          {
+            "fact": "terminated_by_employer",
+            "eq": true
+          },
+          {
+            "fact": "ground_severe_misconduct_39",
+            "eq": false
+          },
+          {
+            "fact": "ground_40_with_procedure",
+            "eq": false
+          },
+          {
+            "fact": "ground_layoff_41_procedure",
+            "eq": false
+          },
+          {
+            "fact": "mutual_agreement_employer_proposed",
+            "eq": false
+          },
+          {
+            "fact": "contract_expired_termination",
+            "eq": false
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "compensation_2n_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "解除不合法的枚举不是完备分类；继续履行与赔偿选择尚未完整建模。"
+      ],
+      "factKeys": [
+        "compensation_2n_paid",
+        "contract_expired_termination",
+        "ground_40_with_procedure",
+        "ground_layoff_41_procedure",
+        "ground_severe_misconduct_39",
+        "mutual_agreement_employer_proposed",
+        "terminated_by_employer"
+      ],
+      "formula": "O(act_R87 | A_R87 & !E_R87)",
+      "conditionAtom": "A_R87",
+      "exceptionAtom": "E_R87"
+    },
+    {
+      "id": "R46",
+      "mappingVersion": "R46@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第四十六条、第四十七条",
+      "bearer": "用人单位",
+      "action": "按工作年限支付经济补偿（N）",
+      "actionAtom": "act_R46",
+      "condition": {
+        "any": [
+          {
+            "all": [
+              {
+                "fact": "worker_rescinded_38",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "mutual_agreement_employer_proposed",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "ground_40_with_procedure",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "ground_layoff_41_procedure",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "contract_expired_termination",
+                "eq": true
+              },
+              {
+                "fact": "employer_renewed_same_or_better",
+                "eq": false
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "fact": "worker_refused_contract",
+                "eq": true
+              },
+              {
+                "fact": "employer_written_termination_notice",
+                "eq": true
+              },
+              {
+                "fact": "months_employed",
+                "op": ">",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "severance_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "不同经济补偿事由的全部要件及与赔偿金的关系待审核。"
+      ],
+      "factKeys": [
+        "contract_expired_termination",
+        "employer_renewed_same_or_better",
+        "employer_written_termination_notice",
+        "ground_40_with_procedure",
+        "ground_layoff_41_procedure",
+        "months_employed",
+        "mutual_agreement_employer_proposed",
+        "severance_paid",
+        "worker_refused_contract",
+        "worker_rescinded_38"
+      ],
+      "formula": "O(act_R46 | A_R46 & !E_R46)",
+      "conditionAtom": "A_R46",
+      "exceptionAtom": "E_R46"
+    },
+    {
+      "id": "R24",
+      "mappingVersion": "R24@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第二十三条、第二十四条",
+      "bearer": "用人单位",
+      "action": "竞业限制期限不超过二年且离职后按月支付经济补偿",
+      "actionAtom": "act_R24",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "noncompete_clause",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "any": [
+            {
+              "fact": "noncompete_months",
+              "op": ">",
+              "value": 24
+            },
+            {
+              "fact": "noncompete_compensation_paid",
+              "eq": false
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "noncompete_clause",
+        "noncompete_compensation_paid",
+        "noncompete_months"
+      ],
+      "formula": "O(act_R24 | A_R24 & !E_R24)",
+      "conditionAtom": "A_R24",
+      "exceptionAtom": "E_R24"
+    },
+    {
+      "id": "R39",
+      "mappingVersion": "R39@2026-11-12.1",
+      "kind": "AUTH",
+      "source": "《劳动合同法》第三十九条",
+      "bearer": "用人单位",
+      "action": "过失性辞退（无需提前通知、无需支付经济补偿）",
+      "actionAtom": "act_R39",
+      "condition": {
+        "fact": "ground_severe_misconduct_39",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": null,
+      "violationOf": null,
+      "limits": [
+        "许可仅表示授权条件，不自动生成解除已经发生或补偿事实。"
+      ],
+      "factKeys": [
+        "ground_severe_misconduct_39"
+      ],
+      "formula": "AUTH(act_R39 | A_R39 & !E_R39)",
+      "conditionAtom": "A_R39",
+      "exceptionAtom": "E_R39"
+    },
+    {
+      "id": "R40",
+      "mappingVersion": "R40@2026-11-12.1",
+      "kind": "AUTH",
+      "source": "《劳动合同法》第四十条",
+      "bearer": "用人单位",
+      "action": "无过失性辞退（提前30日书面通知或支付代通知金）",
+      "actionAtom": "act_R40",
+      "condition": {
+        "fact": "ground_40_with_procedure",
+        "eq": true
+      },
+      "exceptions": [
+        {
+          "id": "X40-42",
+          "source": "《劳动合同法》第四十二条对第四十条、第四十一条的限制",
+          "condition": {
+            "fact": "worker_special_protection",
+            "eq": true
+          },
+          "basisId": "P42-40"
+        }
+      ],
+      "fulfillment": null,
+      "violationOf": null,
+      "limits": [
+        "第42条限制作为显式阻却映射；全部第40条事实与程序仍需审核。"
+      ],
+      "factKeys": [
+        "ground_40_with_procedure",
+        "worker_special_protection"
+      ],
+      "formula": "AUTH(act_R40 | A_R40 & !E_R40)",
+      "conditionAtom": "A_R40",
+      "exceptionAtom": "E_R40"
+    },
+    {
+      "id": "R50",
+      "mappingVersion": "R50@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第五十条",
+      "bearer": "用人单位",
+      "action": "出具解除/终止证明并在15日内办理档案社保转移",
+      "actionAtom": "act_R50",
+      "condition": {
+        "all": [
+          {
+            "fact": "worker_separated",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "separation_certificate_issued",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "履行字段只覆盖离职证明，尚不覆盖档案和社保关系转移期限。"
+      ],
+      "factKeys": [
+        "separation_certificate_issued",
+        "worker_separated"
+      ],
+      "formula": "O(act_R50 | A_R50 & !E_R50)",
+      "conditionAtom": "A_R50",
+      "exceptionAtom": "E_R50"
+    },
+    {
+      "id": "R14",
+      "mappingVersion": "R14@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第十四条第三款、《实施条例》第七条",
+      "bearer": "用人单位",
+      "action": "按无固定期限劳动合同对待劳动者",
+      "actionAtom": "act_R14",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "months_employed",
+            "op": ">=",
+            "value": 12
+          },
+          {
+            "fact": "written_contract_signed",
+            "eq": false
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "indefinite_contract_honored",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "indefinite_contract_honored",
+        "months_employed",
+        "written_contract_signed"
+      ],
+      "formula": "O(act_R14 | A_R14 & !E_R14)",
+      "conditionAtom": "A_R14",
+      "exceptionAtom": "E_R14"
+    },
+    {
+      "id": "R82-2",
+      "mappingVersion": "R82-2@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十二条第二款（合同期满后继续用工未续订，参照适用）",
+      "bearer": "用人单位",
+      "action": "期满留用期间每月支付二倍工资",
+      "actionAtom": "act_R82_2",
+      "condition": {
+        "all": [
+          {
+            "fact": "continued_after_expiry",
+            "eq": true
+          },
+          {
+            "fact": "contract_renewed",
+            "eq": false
+          },
+          {
+            "fact": "months_after_expiry",
+            "op": ">",
+            "value": 1
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "double_wage_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "续用未续签的二倍工资依据与原第82条第二款标注需核对，不能直接套用。"
+      ],
+      "factKeys": [
+        "continued_after_expiry",
+        "contract_renewed",
+        "double_wage_paid",
+        "months_after_expiry"
+      ],
+      "formula": "O(act_R82_2 | A_R82_2 & !E_R82_2)",
+      "conditionAtom": "A_R82_2",
+      "exceptionAtom": "E_R82_2"
+    },
+    {
+      "id": "R22",
+      "mappingVersion": "R22@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第二十二条",
+      "bearer": "用人单位",
+      "action": "服务期违约金不超过培训费用及未履行部分分摊额",
+      "actionAtom": "act_R22",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "special_training_agreed",
+            "eq": true
+          },
+          {
+            "fact": "penalty_on_worker_agreed",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "service_penalty_compliant",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "penalty_on_worker_agreed",
+        "service_penalty_compliant",
+        "special_training_agreed"
+      ],
+      "formula": "O(act_R22 | A_R22 & !E_R22)",
+      "conditionAtom": "A_R22",
+      "exceptionAtom": "E_R22"
+    },
+    {
+      "id": "R25",
+      "mappingVersion": "R25@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动合同法》第二十五条",
+      "bearer": "用人单位",
+      "action": "与劳动者约定由劳动者承担违约金（服务期、竞业限制情形除外）",
+      "actionAtom": "act_R25",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "not": {
+              "any": [
+                {
+                  "fact": "penalty_context_service_period",
+                  "eq": true
+                },
+                {
+                  "fact": "penalty_context_noncompete",
+                  "eq": true
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "fact": "penalty_on_worker_agreed",
+          "eq": true
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "occurrence": {
+        "fact": "penalty_on_worker_agreed",
+        "eq": true
+      },
+      "factKeys": [
+        "employment_exists",
+        "penalty_context_noncompete",
+        "penalty_context_service_period",
+        "penalty_on_worker_agreed"
+      ],
+      "formula": "O(!act_R25 | A_R25 & !E_R25)",
+      "conditionAtom": "A_R25",
+      "exceptionAtom": "E_R25"
+    },
+    {
+      "id": "R41",
+      "mappingVersion": "R41@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第四十一条",
+      "bearer": "用人单位",
+      "action": "履行第四十一条法定裁员程序（提前30日说明并听取意见 + 向劳动行政部门报告）",
+      "actionAtom": "act_R41",
+      "condition": {
+        "all": [
+          {
+            "fact": "terminated_by_employer",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "fact": "layoff_headcount",
+                "op": ">=",
+                "value": 20
+              },
+              {
+                "fact": "layoff_ratio_over_10pct",
+                "eq": true
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "all": [
+          {
+            "fact": "layoff_explained_30days_advance",
+            "eq": true
+          },
+          {
+            "fact": "layoff_reported_to_authority",
+            "eq": true
+          }
+        ]
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "layoff_explained_30days_advance",
+        "layoff_headcount",
+        "layoff_ratio_over_10pct",
+        "layoff_reported_to_authority",
+        "terminated_by_employer"
+      ],
+      "formula": "O(act_R41 | A_R41 & !E_R41)",
+      "conditionAtom": "A_R41",
+      "exceptionAtom": "E_R41"
+    },
+    {
+      "id": "R85",
+      "mappingVersion": "R85@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十五条",
+      "bearer": "用人单位",
+      "action": "在责令期限内支付，逾期则按应付金额50%-100%加付赔偿金",
+      "actionAtom": "act_R85",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "authority_ordered_payment",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "all": [
+            {
+              "fact": "order_deadline_passed",
+              "eq": true
+            },
+            {
+              "fact": "arrearage_still_unpaid",
+              "eq": true
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "未单独表示加付赔偿金是否实际支付，原履行式不完整。"
+      ],
+      "factKeys": [
+        "arrearage_still_unpaid",
+        "authority_ordered_payment",
+        "employment_exists",
+        "order_deadline_passed"
+      ],
+      "formula": "O(act_R85 | A_R85 & !E_R85)",
+      "conditionAtom": "A_R85",
+      "exceptionAtom": "E_R85"
+    },
+    {
+      "id": "R26",
+      "mappingVersion": "R26@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第二十六条、第二十八条",
+      "bearer": "用人单位",
+      "action": "对合同无效期间已付出的劳动支付劳动报酬",
+      "actionAtom": "act_R26",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "contract_void_fraud_or_exclusion",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "wages_paid_for_void_contract",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "contract_void_fraud_or_exclusion",
+        "employment_exists",
+        "wages_paid_for_void_contract"
+      ],
+      "formula": "O(act_R26 | A_R26 & !E_R26)",
+      "conditionAtom": "A_R26",
+      "exceptionAtom": "E_R26"
+    },
+    {
+      "id": "R5-AL",
+      "mappingVersion": "R5-AL@2026-11-12.1",
+      "kind": "O",
+      "source": "《职工带薪年休假条例》第三条、第五条，《企业职工带薪年休假实施办法》第十条",
+      "bearer": "用人单位",
+      "action": "对应休未休年休假按日工资300%支付报酬",
+      "actionAtom": "act_R5_AL",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "cumulative_work_years",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "fact": "annual_leave_unused_days",
+            "op": ">",
+            "value": 0
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "id": "X5AL-1",
+          "source": "《企业职工带薪年休假实施办法》第十条",
+          "condition": {
+            "all": [
+              {
+                "fact": "annual_leave_worker_waived",
+                "eq": true
+              }
+            ]
+          }
+        }
+      ],
+      "fulfillment": {
+        "fact": "annual_leave_300_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "annual_leave_300_paid",
+        "annual_leave_unused_days",
+        "annual_leave_worker_waived",
+        "cumulative_work_years",
+        "employment_exists"
+      ],
+      "formula": "O(act_R5_AL | A_R5_AL & !E_R5_AL)",
+      "conditionAtom": "A_R5_AL",
+      "exceptionAtom": "E_R5_AL"
+    },
+    {
+      "id": "R87-2",
+      "mappingVersion": "R87-2@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第四十二条、第八十七条（跨规则效果传导）",
+      "bearer": "用人单位",
+      "action": "按经济补偿标准二倍支付赔偿金（违反42条解除）",
+      "actionAtom": "act_R87_2",
+      "condition": {
+        "all": [
+          {
+            "fact": "terminated_by_employer",
+            "eq": true
+          },
+          {
+            "fact": "worker_special_protection",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "fact": "ground_40_with_procedure",
+                "eq": true
+              },
+              {
+                "fact": "ground_layoff_41_procedure",
+                "eq": true
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "compensation_2n_paid",
+        "eq": true
+      },
+      "violationOf": "R42",
+      "limits": [
+        "违约后赔偿以原R42条件为研究映射，继续履行等救济选择未完整覆盖。"
+      ],
+      "factKeys": [
+        "compensation_2n_paid",
+        "ground_40_with_procedure",
+        "ground_layoff_41_procedure",
+        "terminated_by_employer",
+        "worker_special_protection"
+      ],
+      "formula": "O(act_R87_2 | A_R87_2 & !E_R87_2)",
+      "conditionAtom": "A_R87_2",
+      "exceptionAtom": "E_R87_2"
+    },
+    {
+      "id": "R83",
+      "mappingVersion": "R83@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十三条",
+      "bearer": "用人单位",
+      "action": "以试用期满月工资为标准按超期期间支付赔偿金",
+      "actionAtom": "act_R83",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "probation_agreed",
+            "eq": true
+          },
+          {
+            "fact": "probation_exceeded_cap",
+            "eq": true
+          },
+          {
+            "fact": "probation_excess_served",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "probation_excess_compensation_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "probation_agreed",
+        "probation_exceeded_cap",
+        "probation_excess_compensation_paid",
+        "probation_excess_served"
+      ],
+      "formula": "O(act_R83 | A_R83 & !E_R83)",
+      "conditionAtom": "A_R83",
+      "exceptionAtom": "E_R83"
+    },
+    {
+      "id": "R47-2",
+      "mappingVersion": "R47-2@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第四十七条第二款",
+      "bearer": "用人单位",
+      "action": "经济补偿基数按社平三倍封顶且年限不超过十二年",
+      "actionAtom": "act_R47_2",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "wage_above_3x_social_avg",
+            "eq": true
+          },
+          {
+            "fact": "severance_obligation_exists",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "severance_cap_applied",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "severance_cap_applied",
+        "severance_obligation_exists",
+        "wage_above_3x_social_avg"
+      ],
+      "formula": "O(act_R47_2 | A_R47_2 & !E_R47_2)",
+      "conditionAtom": "A_R47_2",
+      "exceptionAtom": "E_R47_2"
+    },
+    {
+      "id": "R9",
+      "mappingVersion": "R9@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动合同法》第九条、第八十四条",
+      "bearer": "用人单位",
+      "action": "扣押证件或收取财物/要求担保",
+      "actionAtom": "act_R9",
+      "condition": {
+        "fact": "employment_exists",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "any": [
+            {
+              "fact": "id_card_withheld",
+              "eq": true
+            },
+            {
+              "fact": "deposit_or_property_collected",
+              "eq": true
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "occurrence": {
+        "any": [
+          {
+            "fact": "id_card_withheld",
+            "eq": true
+          },
+          {
+            "fact": "deposit_or_property_collected",
+            "eq": true
+          }
+        ]
+      },
+      "factKeys": [
+        "deposit_or_property_collected",
+        "employment_exists",
+        "id_card_withheld"
+      ],
+      "formula": "O(!act_R9 | A_R9 & !E_R9)",
+      "conditionAtom": "A_R9",
+      "exceptionAtom": "E_R9"
+    },
+    {
+      "id": "R14-2",
+      "mappingVersion": "R14-2@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第十四条第二款",
+      "bearer": "用人单位",
+      "action": "依法订立无固定期限劳动合同",
+      "actionAtom": "act_R14_2",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "fact": "continuous_work_years",
+                "op": ">=",
+                "value": 10
+              },
+              {
+                "fact": "renewed_twice_fixed_term",
+                "eq": true
+              }
+            ]
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "id": "X14-2-1",
+          "source": "《劳动合同法》第十四条第二款但书",
+          "condition": {
+            "all": [
+              {
+                "fact": "worker_requests_fixed_term",
+                "eq": true
+              }
+            ]
+          }
+        }
+      ],
+      "fulfillment": {
+        "fact": "indefinite_contract_granted",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "尚未完整表示劳动者提出/同意续订、法定续订条件及相关司法解释。"
+      ],
+      "factKeys": [
+        "continuous_work_years",
+        "employment_exists",
+        "indefinite_contract_granted",
+        "renewed_twice_fixed_term",
+        "worker_requests_fixed_term"
+      ],
+      "formula": "O(act_R14_2 | A_R14_2 & !E_R14_2)",
+      "conditionAtom": "A_R14_2",
+      "exceptionAtom": "E_R14_2"
+    },
+    {
+      "id": "R45",
+      "mappingVersion": "R45@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动合同法》第四十二条、第四十五条",
+      "bearer": "用人单位",
+      "action": "在特殊保护期内因合同期满终止劳动合同",
+      "actionAtom": "act_R45",
+      "condition": {
+        "fact": "worker_special_protection",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "fact": "contract_expired_termination",
+          "eq": true
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "特殊保护被合并为单一字段，工伤待遇等终止规则未细分。"
+      ],
+      "occurrence": {
+        "fact": "contract_expired_termination",
+        "eq": true
+      },
+      "factKeys": [
+        "contract_expired_termination",
+        "worker_special_protection"
+      ],
+      "formula": "O(!act_R45 | A_R45 & !E_R45)",
+      "conditionAtom": "A_R45",
+      "exceptionAtom": "E_R45"
+    },
+    {
+      "id": "R87-3",
+      "mappingVersion": "R87-3@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第四十五条、第八十七条（跨规则效果传导）",
+      "bearer": "用人单位",
+      "action": "按经济补偿标准二倍支付违法终止赔偿金",
+      "actionAtom": "act_R87_3",
+      "condition": {
+        "all": [
+          {
+            "fact": "contract_expired_termination",
+            "eq": true
+          },
+          {
+            "fact": "worker_special_protection",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "compensation_2n_paid",
+        "eq": true
+      },
+      "violationOf": "R45",
+      "limits": [
+        "违约后赔偿以原R45条件为研究映射，特殊保护例外和救济选择待审核。"
+      ],
+      "factKeys": [
+        "compensation_2n_paid",
+        "contract_expired_termination",
+        "worker_special_protection"
+      ],
+      "formula": "O(act_R87_3 | A_R87_3 & !E_R87_3)",
+      "conditionAtom": "A_R87_3",
+      "exceptionAtom": "E_R87_3"
+    },
+    {
+      "id": "R58-SI",
+      "mappingVersion": "R58-SI@2026-11-12.1",
+      "kind": "O",
+      "source": "《社会保险法》第五十八条、第六十三条，《劳动法》第七十二条",
+      "bearer": "用人单位",
+      "action": "自用工之日起30日内办理社保登记并依法缴费",
+      "actionAtom": "act_R58_SI",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "months_employed",
+            "op": ">=",
+            "value": 1
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "social_insurance_paid",
+        "eq": true
+      },
+      "violationOf": null,
+      "limits": [
+        "一月并不等于法定30日；履行字段未分别覆盖登记、缴费及基数。"
+      ],
+      "factKeys": [
+        "employment_exists",
+        "months_employed",
+        "social_insurance_paid"
+      ],
+      "formula": "O(act_R58_SI | A_R58_SI & !E_R58_SI)",
+      "conditionAtom": "A_R58_SI",
+      "exceptionAtom": "E_R58_SI"
+    },
+    {
+      "id": "R31",
+      "mappingVersion": "R31@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动法》第四十一条",
+      "bearer": "用人单位",
+      "action": "安排加班超过每月三十六小时上限",
+      "actionAtom": "act_R31",
+      "condition": {
+        "fact": "employment_exists",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "fact": "monthly_overtime_hours",
+          "op": ">",
+          "value": 36
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "尚未表示劳动法第42条特殊延长工时情形及特殊工时制度。"
+      ],
+      "occurrence": {
+        "fact": "monthly_overtime_hours",
+        "op": ">",
+        "value": 36
+      },
+      "factKeys": [
+        "employment_exists",
+        "monthly_overtime_hours"
+      ],
+      "formula": "O(!act_R31 | A_R31 & !E_R31)",
+      "conditionAtom": "A_R31",
+      "exceptionAtom": "E_R31"
+    },
+    {
+      "id": "R70",
+      "mappingVersion": "R70@2026-11-12.1",
+      "kind": "F",
+      "source": "《劳动合同法》第六十八条、第七十二条",
+      "bearer": "用人单位",
+      "action": "非全日制用工超过工时上限或结算周期超过15日",
+      "actionAtom": "act_R70",
+      "condition": {
+        "fact": "part_time_employed",
+        "eq": true
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "any": [
+            {
+              "fact": "part_time_daily_hours",
+              "op": ">",
+              "value": 4
+            },
+            {
+              "fact": "part_time_weekly_hours",
+              "op": ">",
+              "value": 24
+            },
+            {
+              "fact": "part_time_paid_within_15days",
+              "eq": false
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "工时超过非全日制标准首先影响用工分类，不宜一概认定独立违法。"
+      ],
+      "occurrence": {
+        "any": [
+          {
+            "fact": "part_time_daily_hours",
+            "op": ">",
+            "value": 4
+          },
+          {
+            "fact": "part_time_weekly_hours",
+            "op": ">",
+            "value": 24
+          },
+          {
+            "fact": "part_time_paid_within_15days",
+            "eq": false
+          }
+        ]
+      },
+      "factKeys": [
+        "part_time_daily_hours",
+        "part_time_employed",
+        "part_time_paid_within_15days",
+        "part_time_weekly_hours"
+      ],
+      "formula": "O(!act_R70 | A_R70 & !E_R70)",
+      "conditionAtom": "A_R70",
+      "exceptionAtom": "E_R70"
+    },
+    {
+      "id": "R16-P",
+      "mappingVersion": "R16-P@2026-11-12.1",
+      "kind": "F",
+      "source": "《工资支付暂行规定》第十六条",
+      "bearer": "用人单位",
+      "action": "单月扣除超过工资20%或扣除后低于最低工资",
+      "actionAtom": "act_R16_P",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "fact": "wage_deduction_for_damage",
+            "eq": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "not": {
+          "any": [
+            {
+              "fact": "deduction_over_20pct",
+              "eq": true
+            },
+            {
+              "fact": "deduction_below_min_wage",
+              "eq": true
+            }
+          ]
+        }
+      },
+      "violationOf": null,
+      "limits": [
+        "沿用原受控事实词表，尚未完成完整法律要件、地域口径及当前司法解释审核。"
+      ],
+      "occurrence": {
+        "any": [
+          {
+            "fact": "deduction_over_20pct",
+            "eq": true
+          },
+          {
+            "fact": "deduction_below_min_wage",
+            "eq": true
+          }
+        ]
+      },
+      "factKeys": [
+        "deduction_below_min_wage",
+        "deduction_over_20pct",
+        "employment_exists",
+        "wage_deduction_for_damage"
+      ],
+      "formula": "O(!act_R16_P | A_R16_P & !E_R16_P)",
+      "conditionAtom": "A_R16_P",
+      "exceptionAtom": "E_R16_P"
+    },
+    {
+      "id": "R82-3",
+      "mappingVersion": "R82-3@2026-11-12.1",
+      "kind": "O",
+      "source": "《劳动合同法》第八十二条第二款（应订无固定期限而未订，跨规则效果传导）",
+      "bearer": "用人单位",
+      "action": "自应订立之日起每月支付二倍工资",
+      "actionAtom": "act_R82_3",
+      "condition": {
+        "all": [
+          {
+            "fact": "employment_exists",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "fact": "continuous_work_years",
+                "op": ">=",
+                "value": 10
+              },
+              {
+                "fact": "renewed_twice_fixed_term",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "fact": "indefinite_contract_granted",
+            "eq": false
+          },
+          {
+            "fact": "worker_requests_fixed_term",
+            "eq": false
+          }
+        ]
+      },
+      "exceptions": [],
+      "fulfillment": {
+        "fact": "double_wage_paid",
+        "eq": true
+      },
+      "violationOf": "R14-2",
+      "limits": [
+        "依赖R14-2条件完整性及具体责任期间；只作研究候选。"
+      ],
+      "factKeys": [
+        "continuous_work_years",
+        "double_wage_paid",
+        "employment_exists",
+        "indefinite_contract_granted",
+        "renewed_twice_fixed_term",
+        "worker_requests_fixed_term"
+      ],
+      "formula": "O(act_R82_3 | A_R82_3 & !E_R82_3)",
+      "conditionAtom": "A_R82_3",
+      "exceptionAtom": "E_R82_3"
+    }
+  ],
+  "priorityBases": [
+    {
+      "id": "P42-40",
+      "from": "R42",
+      "to": "R40",
+      "type": "STATUTORY_RESTRICTION",
+      "source": "《劳动合同法》第四十二条",
+      "effect": "worker_special_protection 阻却第40条许可",
+      "reviewStatus": "PENDING"
+    }
+  ],
+  "boundary": "K3具体条件计算 + 每条义务/禁止的两原子有限排序片段；授权单列。不是78事实全局排序闭包。"
+}

@@ -1,280 +1,222 @@
 'use strict';
-/**
- * LexChain 推理引擎 v0.1
- * 分析哲学形式化内核：
- *  - 道义逻辑：O(应当) / F(禁止) / P(许可)
- *  - 三值判定：T(成立) / F(不成立) / U(证据不足)
- *  - 可废止推理：规则 + 例外(defeater)，例外成立则结论被推翻
- *  - 双层输出：符号层（可审计） + 自然语言层（可阅读）
- * 引擎本身不调用任何 LLM：所有判定均为确定性运算，可逐步复现。
+/** Deterministic K3 conditions, local exceptions and O/F/P labels.
+ * No modal proof search, global priorities or cross-rule closure.
+ * Missing evidence remains U; invalid data is rejected without coercion.
  */
-
 function loadRuleSet(raw) {
   raw = raw || window.LEXCHAIN_RULESET;
   if (!raw) throw new Error('规则库尚未加载');
   const descMap = {};
+  const errors = validateRuleSet(raw);
+  if (errors.length) throw validationError('规则库无效', errors, 'INVALID_RULESET');
   for (const f of raw.facts) descMap[f.key] = f;
   return { meta: raw.meta, facts: raw.facts, rules: raw.rules, descMap };
 }
-
-/* ---------- 原子评估（三值） ---------- */
-function evalAtom(atom, facts, descMap) {
-  const key = atom.fact;
-  const def = descMap[key] || { label: key, type: 'bool' };
-  const v = facts[key];
-  const unknown = (v === undefined || v === null || v === '');
-  let actualDesc = unknown ? '未知' : String(v);
-
-  let value; // 'T' | 'F' | 'U'
-  if (unknown) {
-    value = 'U';
-  } else if (def.type === 'number') {
-    const n = Number(v);
-    if (Number.isNaN(n)) { value = 'U'; }
-    else {
-      const op = atom.op || '==';
-      const target = Number(atom.eq !== undefined ? atom.eq : atom.value);
-      switch (op) {
-        case '>': value = n > target ? 'T' : 'F'; break;
-        case '>=': value = n >= target ? 'T' : 'F'; break;
-        case '<': value = n < target ? 'T' : 'F'; break;
-        case '<=': value = n <= target ? 'T' : 'F'; break;
-        default: value = n === target ? 'T' : 'F';
+const own = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+const isRecord = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const CATEGORIES = { obligation: 'OBLIGATION', prohibition: 'FORBIDDEN', permission: 'PERMISSION' };
+const NUMBER_OPS = ['==', '>', '>=', '<', '<='];
+function validationError(message, errors, code = 'INVALID_FACTS') {
+  const e = new Error(message + '：' + errors.join('；'));
+  e.code = code; e.details = errors;
+  return e;
+}
+function validateFacts(facts, definitions) {
+  if (!isRecord(facts)) return ['facts 必须是对象'];
+  const defs = Array.isArray(definitions) ? Object.fromEntries(definitions.map(f => [f.key, f])) : definitions;
+  const errors = [];
+  for (const [key, value] of Object.entries(facts)) {
+    if (!own(defs, key)) { errors.push(`未知事实字段 ${key}`); continue; }
+    const def = defs[key];
+    if (value === null) continue;
+    if (def.type === 'bool') {
+      if (typeof value !== 'boolean') errors.push(`${key} 只接受 true/false/null`);
+    } else if (def.type === 'number') {
+      if (typeof value !== 'number' || !Number.isFinite(value)) errors.push(`${key} 必须是有限数值或 null`);
+      else {
+        if (def.minimum !== undefined && value < def.minimum) errors.push(`${key} 不得小于 ${def.minimum}`);
+        if (def.maximum !== undefined && value > def.maximum) errors.push(`${key} 不得大于 ${def.maximum}`);
+        if (def.integer && !Number.isInteger(value)) errors.push(`${key} 必须是整数`);
       }
-      actualDesc = String(n);
-    }
+    } else errors.push(`${key} 的定义类型不受支持`);
+  }
+  return errors;
+}
+function assertFacts(facts, definitions) {
+  const errors = validateFacts(facts, definitions);
+  if (errors.length) throw validationError('事实校验失败', errors);
+}
+// An unconditional rule requires an explicit constant, never a missing condition.
+function validateCondition(cond, defs, at = 'condition', depth = 0, budget = { nodes: 0 }) {
+  if (depth > 64 || ++budget.nodes > 4096) return [`${at} 条件树过深或过大`];
+  if (!isRecord(cond)) return [`${at} 必须是条件对象；无条件成立请明确使用 {constant:true}`];
+  const forms = ['fact', 'not', 'all', 'any', 'constant'].filter(k => own(cond, k));
+  if (forms.length !== 1) return [`${at} 必须且只能包含一种条件形式`];
+  const form = forms[0], allowed = form === 'fact' ? ['fact', 'eq', 'op', 'value'] : [form];
+  const errors = Object.keys(cond).filter(k => !allowed.includes(k)).map(k => `${at} 不支持属性 ${k}`);
+  if (form === 'constant') {
+    if (typeof cond.constant !== 'boolean') errors.push(`${at}.constant 必须是布尔值`);
+  } else if (form === 'not') errors.push(...validateCondition(cond.not, defs, at + '.not', depth + 1, budget));
+  else if (form === 'all' || form === 'any') {
+    if (!Array.isArray(cond[form]) || !cond[form].length) errors.push(`${at}.${form} 不能为空；请使用显式 constant`);
+    else cond[form].forEach((c, i) => errors.push(...validateCondition(c, defs, `${at}.${form}[${i}]`, depth + 1, budget)));
   } else {
-    const expected = atom.eq !== undefined ? atom.eq : (atom.value === true);
-    value = (Boolean(v) === Boolean(expected)) ? 'T' : 'F';
-  }
-
-  const negate = (def.type !== 'number' && atom.eq === false) ||
-                 (def.type !== 'number' && atom.eq === undefined && atom.value === false);
-  const symbol = (negate ? '¬' : '') + symbolize(key, atom, def);
-  return { fact: key, label: def.label, group: def.group || '', symbol, negate, expected: atom.eq !== undefined ? atom.eq : (atom.op ? `${atom.op}${atom.value}` : true), actual: unknown ? null : v, value };
-}
-
-function symbolize(key, atom, def) {
-  if (def.type === 'number') {
-    const short = key.replace(/_/g, ' ');
-    return `${short}${atom.op || '=='}${atom.value !== undefined ? atom.value : atom.eq}`;
-  }
-  // 驼峰式命题符号：EmploymentExists
-  return key.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
-}
-
-/* ---------- 条件评估（AND/OR 递归嵌套） ---------- */
-function evalCondition(cond, facts, descMap) {
-  if (!cond) return { value: 'T', atoms: [] };
-  if (cond.fact) {
-    const a = evalAtom(cond, facts, descMap);
-    return { value: a.value, atoms: [a] };
-  }
-  if (cond.not) {
-    const r = evalCondition(cond.not, facts, descMap);
-    const value = r.value === 'T' ? 'F' : r.value === 'F' ? 'T' : 'U';
-    return { value, atoms: r.atoms, negated: true };
-  }
-  if (cond.all) {
-    const atoms = [];
-    let value = 'T';
-    for (const sub of cond.all) {
-      const r = evalCondition(sub, facts, descMap);
-      atoms.push(...r.atoms);
-      if (r.value === 'F') value = 'F';
-      else if (r.value === 'U' && value === 'T') value = 'U';
-    }
-    return { value, atoms };
-  }
-  if (cond.any) {
-    const atoms = [];
-    let value = 'F';
-    for (const sub of cond.any) {
-      const r = evalCondition(sub, facts, descMap);
-      atoms.push(...r.atoms);
-      if (r.value === 'T') value = 'T';
-      else if (r.value === 'U' && value === 'F') value = 'U';
-    }
-    return { value, atoms };
-  }
-  return { value: 'T', atoms: [] };
-}
-
-/* ---------- 单条规则评估 ---------- */
-function evalRule(rule, facts, descMap) {
-  const trig = evalCondition(rule.trigger, facts, descMap);
-  const result = {
-    id: rule.id,
-    source: rule.source,
-    text: rule.text,
-    category: rule.category,
-    deontic: rule.deontic,
-    trigger: trig,
-    exceptions: [],
-    status: 'NOT_TRIGGERED',
-    symbol: '',
-    nlChain: [],
-    missingFacts: [],
-    remedy: rule.remedy || '',
-    riskNote: rule.risk_note || '',
-    consequenceNote: rule.consequence_note || ''
-  };
-
-  if (trig.value === 'F') {
-    result.status = 'NOT_TRIGGERED';
-    result.symbol = `⟦${rule.id}⟧ (${renderCond(rule.trigger, facts, descMap)}) ⇒ 不触发`;
-    result.nlChain.push(`要件核对：本条不适用于当前事实（${trig.atoms.filter(a => a.value === 'F').map(a => `「${a.label}」不成立`).join('；') || '要件不满足'}）。`);
-    return result;
-  }
-
-  // 例外（defeater）核查
-  let defeated = null;
-  let exceptionPending = false;
-  for (const ex of (rule.exceptions || [])) {
-    const exEval = evalCondition({ all: ex.all }, facts, descMap);
-    result.exceptions.push({ id: ex.id, source: ex.source, desc: ex.desc || '', eval: exEval });
-    if (exEval.value === 'T') { defeated = ex; break; }
-    if (exEval.value === 'U') exceptionPending = true;
-  }
-
-  if (defeated) {
-    result.status = 'DEFEATED';
-    result.symbol = `⟦${rule.id}⟧ (${renderCond(rule.trigger, facts, descMap)}) ⇒⋯ ⊣[${defeated.source}] ${rule.deontic.symbol}`;
-    result.nlChain.push(`要件核对：${trig.atoms.map(a => `「${a.label}」${valueTag(a.value)}`).join('，')}——表面成立。`);
-    result.nlChain.push(`例外核查：成立例外【${defeated.source}】${defeated.desc ? `（${defeated.desc}）` : ''}。`);
-    result.nlChain.push(`结论：义务被例外推翻（defeated），不产生${rule.deontic.act}义务。`);
-    return result;
-  }
-
-  if (trig.value === 'U') {
-    result.status = 'POSSIBLE';
-    const unknown = uniqueUnknown(trig.atoms);
-    result.missingFacts = unknown;
-    result.symbol = `⟦${rule.id}⟧ (${renderCond(rule.trigger, facts, descMap)}) ⇒? ${rule.deontic.symbol}   [证据不足: ${unknown.map(f => f.fact).join(', ')}]`;
-    result.nlChain.push(`要件核对：${trig.atoms.map(a => `「${a.label}」${valueTag(a.value)}`).join('，')}。`);
-    result.nlChain.push(`结论：证据不足（三值判定 U）。补齐以下事实后方可判定：${unknown.map(f => `「${f.label}」`).join('、')}。`);
-    return result;
-  }
-
-  // 触发成立，核查例外是否待定
-  if (exceptionPending) {
-    result.status = 'DEFENSIBLE';
-    const pending = [];
-    for (const ex of result.exceptions) {
-      if (ex.eval.value === 'U') pending.push(...uniqueUnknown(ex.eval.atoms));
-    }
-    result.missingFacts = uniqueUnknown(pending);
-    result.symbol = `⟦${rule.id}⟧ (${renderCond(rule.trigger, facts, descMap)}) ⇒_dft ${rule.deontic.symbol}   [待排除例外: ${pending.map(f => f.fact).join(', ')}]`;
-    result.nlChain.push(`要件核对：${trig.atoms.map(a => `「${a.label}」${valueTag(a.value)}`).join('，')}——成立。`);
-    result.nlChain.push(`例外核查：存在待查证例外【${result.exceptions.find(e => e.eval.value === 'U').source}】，暂按可废止成立处理。`);
-  } else {
-    result.symbol = `⟦${rule.id}⟧ (${renderCond(rule.trigger, facts, descMap)}) ⇒ ${rule.deontic.symbol}`;
-    result.nlChain.push(`要件核对：${trig.atoms.map(a => `「${a.label}」${valueTag(a.value)}`).join('，')}——全部成立。`);
-    result.nlChain.push(`例外核查：${result.exceptions.length ? '例外情形均不成立。' : '本条无例外规定。'}`);
-  }
-
-  // 违约/履行核查
-  if (rule.category === 'prohibition') {
-    // 禁令类规则：触发要件成立即构成违反（无需履行核查）。
-    // 已承担赔偿后果（如已付 2N）不改变"禁令曾被违反"的定性。
-    result.status = exceptionPending ? 'DEFENSIBLE' : 'VIOLATION';
-    result.nlChain.push(`禁令核查：${result.deontic.bearer}实施了被禁止行为（${result.deontic.act}），要件成立。`);
-    result.nlChain.push(`判定：违反禁止性规定（VIOLATION）。`);
-    if (!result.symbol.includes('⇒')) result.symbol += ` ⇒ ${rule.deontic.symbol}`;
-  } else if (rule.category === 'obligation' && rule.breach) {
-    const br = evalCondition(rule.breach, facts, descMap);
-    result.breach = br;
-    if (br.value === 'F') {
-      result.status = exceptionPending ? 'DEFENSIBLE' : 'VIOLATION';
-      result.nlChain.push(`履行核查：「${br.atoms.filter(a => a.value === 'F').map(a => a.label).join('、') || '义务'}」未履行。`);
-      result.nlChain.push(`判定：${result.status === 'VIOLATION' ? '已违反（VIOLATION）' : '疑似违反（待例外查证）'}。`);
-    } else if (br.value === 'U') {
-      result.status = exceptionPending ? 'DEFENSIBLE' : 'RISK';
-      const brUnknown = uniqueUnknown(br.atoms);
-      result.missingFacts = brUnknown;
-      result.nlChain.push('履行核查：履行情况未知。');
-      result.nlChain.push(`判定：存在法律风险（待查证履行情况）。需补齐：${brUnknown.map(f => `「${f.label}」`).join('、')}。`);
+    if (typeof cond.fact !== 'string' || !own(defs, cond.fact)) return [...errors, `${at} 未知事实 ${cond.fact}`];
+    if (own(cond, 'eq') && (own(cond, 'value') || own(cond, 'op'))) errors.push(`${at} eq 与 op/value 不得混用`);
+    const target = own(cond, 'eq') ? cond.eq : own(cond, 'value') ? cond.value : true;
+    if (defs[cond.fact].type === 'bool') {
+      if (typeof target !== 'boolean' || own(cond, 'op')) errors.push(`${at} 布尔原子只允许 eq/value 布尔值`);
     } else {
-      result.status = 'COMPLIANT';
-      result.nlChain.push('履行核查：义务已履行。');
-      result.nlChain.push('判定：合规（COMPLIANT）。');
+      if (!own(cond, 'eq') && !own(cond, 'value')) errors.push(`${at} 数值原子缺少比较值`);
+      if (typeof target !== 'number' || !Number.isFinite(target)) errors.push(`${at} 比较值必须是有限数值`);
+      if (own(cond, 'op') && !NUMBER_OPS.includes(cond.op)) errors.push(`${at} 非法比较运算符 ${cond.op}`);
     }
-    if (!result.symbol.includes('⇒')) result.symbol += ` ⇒ ${rule.deontic.symbol}`;
-  } else if (rule.category === 'permission') {
-    result.status = exceptionPending ? 'DEFENSIBLE' : 'PERMITTED';
-    result.nlChain.push(`判定：许可成立（PERMITTED）——${result.deontic.bearer}有权${result.deontic.act}。`);
-    if (result.consequenceNote) result.nlChain.push(`法律衔接：${result.consequenceNote}`);
   }
-
-  return result;
+  return errors;
 }
-
-function renderCond(cond, facts, descMap) {
-  if (!cond) return '⊤';
-  if (cond.fact) return evalAtom(cond, facts, descMap).symbol;
-  if (cond.not) return `¬(${renderCond(cond.not, facts, descMap)})`;
-  if (cond.all) return cond.all.map(c => renderCond(c, facts, descMap)).join(' ∧ ');
-  if (cond.any) return '(' + cond.any.map(c => renderCond(c, facts, descMap)).join(' ∨ ') + ')';
-  return '⊤';
-}
-
-function valueTag(v) {
-  return v === 'T' ? '✔ 成立' : v === 'F' ? '✘ 不成立' : '? 未知';
-}
-
-function uniqueUnknown(atoms) {
-  const seen = new Map();
-  for (const a of atoms) {
-    if (a.value === 'U' && !seen.has(a.fact)) {
-      seen.set(a.fact, { fact: a.fact, label: a.label, question: a.label.replace(/（.*）/, '') + '？请补充。' });
+function validateRule(rule, defs) {
+  if (!isRecord(rule)) return ['规则必须是对象'];
+  const errors = [];
+  for (const k of ['id', 'source', 'text']) if (typeof rule[k] !== 'string' || !rule[k].trim()) errors.push(`规则缺少 ${k}`);
+  if (!own(CATEGORIES, rule.category)) errors.push(`${rule.id} 非法 category`);
+  const d = rule.deontic;
+  if (!isRecord(d) || d.operator !== CATEGORIES[rule.category] || ['bearer', 'act', 'symbol'].some(k => typeof d[k] !== 'string' || !d[k].trim())) errors.push(`${rule.id} deontic 不完整或与 category 不一致`);
+  errors.push(...validateCondition(rule.trigger, defs, `${rule.id}.trigger`));
+  if (rule.category === 'obligation' || own(rule, 'breach')) errors.push(...validateCondition(rule.breach, defs, `${rule.id}.breach`));
+  if (!Array.isArray(rule.exceptions)) errors.push(`${rule.id}.exceptions 必须是数组`);
+  else {
+    const ids = new Set();
+    for (const ex of rule.exceptions) {
+      if (!isRecord(ex) || typeof ex.id !== 'string' || !ex.id || typeof ex.source !== 'string' || !ex.source) { errors.push(`${rule.id} 例外缺少 id/source`); continue; }
+      if (ids.has(ex.id)) errors.push(`${rule.id} 重复例外 id ${ex.id}`);
+      ids.add(ex.id);
+      if (Object.keys(ex).some(k => !['id', 'source', 'desc', 'all'].includes(k))) errors.push(`${rule.id}.${ex.id} 例外只支持 all 条件数组`);
+      errors.push(...validateCondition({ all: ex.all }, defs, `${rule.id}.${ex.id}`));
     }
+  }
+  return errors;
+}
+function validateRuleSet(raw) {
+  if (!isRecord(raw) || !Array.isArray(raw.facts) || !Array.isArray(raw.rules)) return ['规则库必须有 facts/rules 数组'];
+  const errors = [], defs = Object.create(null), ids = new Set();
+  for (const f of raw.facts) {
+    if (!isRecord(f) || typeof f.key !== 'string' || !/^[a-z][a-z0-9_]*$/.test(f.key) || !['bool', 'number'].includes(f.type) || typeof f.label !== 'string') { errors.push('事实定义格式错误'); continue; }
+    if (own(defs, f.key)) errors.push(`重复事实 key ${f.key}`);
+    for (const k of ['minimum', 'maximum']) if (own(f, k) && (typeof f[k] !== 'number' || !Number.isFinite(f[k]))) errors.push(`${f.key}.${k} 必须是有限数值`);
+    if (f.minimum > f.maximum) errors.push(`${f.key} 数值范围颠倒`);
+    if (own(f, 'integer') && typeof f.integer !== 'boolean') errors.push(`${f.key}.integer 必须是布尔值`);
+    defs[f.key] = f;
+  }
+  for (const rule of raw.rules) {
+    if (rule && ids.has(rule.id)) errors.push(`重复规则 id ${rule.id}`);
+    if (rule) ids.add(rule.id);
+    errors.push(...validateRule(rule, defs));
+  }
+  return errors;
+}
+function evalAtom(atom, facts, defs) {
+  const errors = validateCondition(atom, defs);
+  if (errors.length) throw validationError('原子条件无效', errors, 'INVALID_CONDITION');
+  if (!own(atom, 'fact')) throw validationError('原子条件无效', ['缺 fact'], 'INVALID_CONDITION');
+  const key = atom.fact, def = defs[key], v = facts[key];
+  if (own(facts, key)) assertFacts({ [key]: v }, defs);
+  const unknown = !own(facts, key) || v === null;
+  const target = own(atom, 'eq') ? atom.eq : own(atom, 'value') ? atom.value : true;
+  const op = atom.op || '==';
+  let value = 'U';
+  if (!unknown) value = (op === '>' ? v > target : op === '>=' ? v >= target : op === '<' ? v < target : op === '<=' ? v <= target : v === target) ? 'T' : 'F';
+  const negate = def.type === 'bool' && target === false;
+  const name = key.split('_').map(s => s[0].toUpperCase() + s.slice(1)).join('');
+  const symbol = def.type === 'number' ? `${key.replace(/_/g, ' ')}${op}${target}` : (negate ? '¬' : '') + name;
+  return { fact: key, label: def.label, group: def.group || '', symbol, negate, expected: target, actual: unknown ? null : v, value };
+}
+function evalCondition(cond, facts, defs) {
+  const errors = validateCondition(cond, defs);
+  if (errors.length) throw validationError('条件无效', errors, 'INVALID_CONDITION');
+  function visit(node) {
+    if (own(node, 'constant')) return { value: node.constant ? 'T' : 'F', atoms: [] };
+    if (own(node, 'fact')) { const a = evalAtom(node, facts, defs); return { value: a.value, atoms: [a] }; }
+    if (own(node, 'not')) { const r = visit(node.not); return { value: r.value === 'T' ? 'F' : r.value === 'F' ? 'T' : 'U', atoms: r.atoms, negated: true }; }
+    const children = (node.all || node.any).map(visit), values = children.map(c => c.value);
+    const value = node.all ? (values.includes('F') ? 'F' : values.includes('U') ? 'U' : 'T') : (values.includes('T') ? 'T' : values.includes('U') ? 'U' : 'F');
+    return { value, atoms: children.flatMap(c => c.atoms) };
+  }
+  return visit(cond);
+}
+function unknownFacts(atoms, phase) {
+  return atoms.filter(a => a.value === 'U').map(a => ({ fact: a.fact, label: a.label, question: a.label + '？请补充。', reasons: [phase] }));
+}
+function mergeMissing(items) {
+  const seen = new Map();
+  for (const item of items) {
+    if (!seen.has(item.fact)) seen.set(item.fact, { ...item, reasons: [] });
+    const target = seen.get(item.fact);
+    target.reasons = [...new Set([...target.reasons, ...(item.reasons || [])])];
   }
   return [...seen.values()];
 }
-
-/* ---------- 生成总报告 ---------- */
+function renderCond(cond, facts, defs) {
+  if (own(cond, 'constant')) return cond.constant ? '⊤' : '⊥';
+  if (own(cond, 'fact')) return evalAtom(cond, facts, defs).symbol;
+  if (own(cond, 'not')) return `¬(${renderCond(cond.not, facts, defs)})`;
+  return '(' + (cond.all || cond.any).map(c => renderCond(c, facts, defs)).join(cond.all ? ' ∧ ' : ' ∨ ') + ')';
+}
+function valueTag(v) { return v === 'T' ? '成立' : v === 'F' ? '不成立' : '未知'; }
+function evalRule(rule, facts, defs) {
+  const errors = validateRule(rule, defs);
+  if (errors.length) throw validationError('规则无效', errors, 'INVALID_RULESET');
+  assertFacts(facts, defs);
+  const trigger = evalCondition(rule.trigger, facts, defs);
+  const exceptions = rule.exceptions.map(ex => ({ id: ex.id, source: ex.source, desc: ex.desc || '', eval: evalCondition({ all: ex.all }, facts, defs) }));
+  const exceptionValue = exceptions.some(ex => ex.eval.value === 'T') ? 'T' : exceptions.some(ex => ex.eval.value === 'U') ? 'U' : 'F';
+  const breach = rule.category === 'obligation' ? evalCondition(rule.breach, facts, defs) : null;
+  const applicability = trigger.value === 'F' ? 'NOT_TRIGGERED' : exceptionValue === 'T' ? 'BLOCKED' : trigger.value === 'U' || exceptionValue === 'U' ? 'PENDING' : 'APPLICABLE';
+  const status = trigger.value === 'F' ? 'NOT_TRIGGERED' : exceptionValue === 'T' ? 'DEFEATED' : trigger.value === 'U' ? 'POSSIBLE' : exceptionValue === 'U' ? 'DEFENSIBLE' : rule.category === 'permission' ? 'PERMITTED' : rule.category === 'prohibition' ? 'VIOLATION' : breach.value === 'T' ? 'COMPLIANT' : breach.value === 'F' ? 'VIOLATION' : 'RISK';
+  const needed = applicability !== 'NOT_TRIGGERED' && applicability !== 'BLOCKED';
+  const missingFactsByPhase = {
+    trigger: needed && trigger.value === 'U' ? mergeMissing(unknownFacts(trigger.atoms, 'trigger')) : [],
+    exceptions: needed && exceptionValue === 'U' ? mergeMissing(exceptions.flatMap(ex => ex.eval.value === 'U' ? unknownFacts(ex.eval.atoms, `exception:${ex.id}`) : [])) : [],
+    fulfillment: needed && trigger.value === 'T' && breach && breach.value === 'U' ? mergeMissing(unknownFacts(breach.atoms, 'fulfillment')) : []
+  };
+  const result = {
+    id: rule.id, source: rule.source, text: rule.text, category: rule.category, deontic: rule.deontic,
+    trigger, exceptions, status, dimensions: { trigger: trigger.value, exception: exceptionValue, fulfillment: breach ? breach.value : 'NOT_APPLICABLE', applicability },
+    missingFactsByPhase, missingFacts: mergeMissing(Object.values(missingFactsByPhase).flat()),
+    remedy: rule.remedy || '', riskNote: rule.risk_note || '', consequenceNote: rule.consequence_note || '',
+    symbol: `⟦${rule.id}⟧ ${renderCond(rule.trigger, facts, defs)} → [${status}] ${rule.deontic.symbol}`,
+    nlChain: [`触发条件：${valueTag(trigger.value)}。`, `例外条件：${exceptions.length ? valueTag(exceptionValue) : '本规则无例外'}。`]
+  };
+  if (breach) { result.breach = breach; result.nlChain.push(`履行条件：${valueTag(breach.value)}（独立于规则适用性）。`); }
+  const conclusions = {
+    NOT_TRIGGERED: '本规则触发条件不满足；不由本规则作出规范结论。',
+    DEFEATED: '本规则被成立的例外阻断；不推出相反结论，也不排除其他规则产生义务。',
+    POSSIBLE: '触发条件待核实，尚不能确认本规则适用。',
+    DEFENSIBLE: breach && breach.value === 'T' ? '履行条件已满足，但例外尚待核实；保留适用性待查状态。' : '例外尚待核实；规范适用及违反/许可结论均未确定。',
+    PERMITTED: '按当前事实与本规则，许可条件满足；不表示已经行使该许可。',
+    COMPLIANT: '按当前事实，本规则适用且履行条件满足；不证明其他时期或其他规则均合规。',
+    VIOLATION: '按当前事实，符合本规则的违反条件。',
+    RISK: '本规则适用，履行情况尚待核实。'
+  };
+  result.nlChain.push(`判定 [${status}]：${conclusions[status]}`);
+  if (result.missingFacts.length) result.nlChain.push('待核实：' + result.missingFacts.map(f => f.label).join('、') + '。');
+  if (status === 'PERMITTED' && result.consequenceNote) result.nlChain.push(`法律衔接：${result.consequenceNote}`);
+  return result;
+}
 function analyze(facts, ruleSetPath) {
   const rs = loadRuleSet(ruleSetPath);
-  const results = rs.rules.map(r => evalRule(r, facts, rs.descMap));
-  const byStatus = {};
+  assertFacts(facts, rs.descMap);
+  const results = rs.rules.map(r => evalRule(r, facts, rs.descMap)), byStatus = {};
   for (const r of results) (byStatus[r.status] = byStatus[r.status] || []).push(r.id);
-
-  const violations = results.filter(r => r.status === 'VIOLATION');
-  const risks = results.filter(r => r.status === 'RISK' || r.status === 'DEFENSIBLE');
-  const possible = results.filter(r => r.status === 'POSSIBLE');
-  const missing = [];
-  const seenF = new Set();
-  for (const r of [...possible, ...risks]) {
-    for (const m of r.missingFacts) {
-      if (!seenF.has(m.fact)) { seenF.add(m.fact); missing.push(m); }
-    }
-  }
-
-  // 总体三值判定
   let verdict, verdictSymbol;
-  if (violations.length > 0) {
-    verdict = '存在违法行为';
-    verdictSymbol = '⊥ (规范被违反)';
-  } else if (possible.length > 0) {
-    verdict = '证据不足，待补事实';
-    verdictSymbol = 'U (三值判定：证据不足)';
-  } else if (risks.length > 0) {
-    verdict = '存在法律风险';
-    verdictSymbol = '◇ (风险存在)';
-  } else {
-    verdict = '未发现违反本规则库情形';
-    verdictSymbol = '⊤ (当前规则库下合规)';
-  }
-
+  if (byStatus.VIOLATION) { verdict = '按当前事实，存在规则违反'; verdictSymbol = 'VIOLATION（条件规则结果）'; }
+  else if (byStatus.POSSIBLE) { verdict = '证据不足，待补事实'; verdictSymbol = 'POSSIBLE（触发待查）'; }
+  else if (byStatus.RISK || byStatus.DEFENSIBLE) { verdict = '存在法律风险'; verdictSymbol = 'PENDING（履行或例外待查）'; }
+  else { verdict = '未发现违反本规则库情形'; verdictSymbol = '未发现违反 ≠ 全面合规证明'; }
   return {
-    engine: 'LexChain v0.1 (deontic + three-valued + defeasible)',
-    rulebase: rs.meta.name,
-    verdict, verdict_symbol: verdictSymbol,
-    status_counts: byStatus,
-    rules: results,
-    missing_facts: missing,
-    disclaimer: '本结果由确定性规则引擎生成，仅为法律风险分析参考，不构成正式法律意见。条文以官方最新文本为准，重大事项请咨询执业律师。'
+    engine: 'LexChain v0.2（K3 条件求值＋局部例外）', status_policy: '2026-11-11', rulebase: rs.meta.name,
+    verdict, verdict_symbol: verdictSymbol, status_counts: byStatus, rules: results,
+    missing_facts: mergeMissing(results.flatMap(r => r.missingFacts)),
+    disclaimer: '本结果是给定事实与当前规则库下的条件计算，仅为法律风险分析参考，不构成正式法律意见或事实认定。规则的法律效度仍需独立审核。'
   };
 }
-
-window.LexChainBrowserEngine = { loadRuleSet, evalAtom, evalCondition, evalRule, analyze };
+window.LexChainBrowserEngine = { loadRuleSet, validateFacts, assertFacts, validateCondition, validateRule, validateRuleSet, validationError, evalAtom, evalCondition, evalRule, analyze };
